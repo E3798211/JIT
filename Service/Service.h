@@ -9,9 +9,9 @@
 /**
     \return nullptr in case of fault
 */
-char* FileRead(const std::string& filename) noexcept;
+char* FileRead(std::string filename) noexcept;
 
 /// Counts words in file
-size_t CountWords(std::string file_content);
+size_t CountWords(std::string file_content) noexcept;
 
 #endif // SERVICE_H_INCLUDED

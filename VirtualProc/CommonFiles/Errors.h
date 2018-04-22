@@ -1,0 +1,12 @@
+#ifndef ERRORS_H_INCLUDED
+#define ERRORS_H_INCLUDED
+
+enum V_ERR
+{
+    V_OK,
+    V_LOAD_ERR,
+    V_NOT_FOUND,
+    V_INVALID_ARG
+};
+
+#endif // ERRORS_H_INCLUDED

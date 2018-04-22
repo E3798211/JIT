@@ -1,12 +1,12 @@
 #include "VirtualProc.h"
 
-int VirtualProc::LoadFile(const std::string& filename)
+int VirtualProc::LoadFile(std::string filename)
 {
     char* file_content = FileRead(filename);
     if(!file_content)
     {
-        PROC_DBG std::cout << "Failed loading programm file\n";
-        return -PROC_ERR::LOAD_ERR;
+        PROC_DBG std::cout << "Failed to load '" << filename << "'\n";
+        return -V_ERR::V_LOAD_ERR;
     }
 
     size_t prog_len = CountWords(file_content);
@@ -19,7 +19,7 @@ int VirtualProc::LoadFile(const std::string& filename)
     {
         PROC_DBG std::cout << "Programm size is too big. Cannot be loaded\n";
         delete [] file_content;
-        return -PROC_ERR::LOAD_ERR;
+        return -V_ERR::V_LOAD_ERR;
     }
 
     char* file_content_iterator = file_content;
@@ -27,7 +27,7 @@ int VirtualProc::LoadFile(const std::string& filename)
         program_[i] = strtol(file_content_iterator, &file_content_iterator, 10);
 
     delete [] file_content;
-    return PROC_ERR::OK;
+    return V_ERR::V_OK;
 }
 
 int VirtualProc::Exec()
@@ -37,7 +37,7 @@ int VirtualProc::Exec()
         //
     }
 
-    return PROC_ERR::OK;
+    return V_ERR::V_OK;
 }
 
 

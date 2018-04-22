@@ -1,6 +1,6 @@
 #include "Service.h"
 
-char* FileRead(const std::string& filename) noexcept
+char* FileRead(std::string filename) noexcept
 {
     FILE* input = fopen(filename.c_str(), "r");
     if(!input)
@@ -36,7 +36,7 @@ char* FileRead(const std::string& filename) noexcept
     return file_content;
 }
 
-size_t CountWords(std::string file_content)
+size_t CountWords(std::string file_content) noexcept
 {
     std::string::iterator it = file_content.begin();
     while(isspace(*it) && it != file_content.end())     it++;       // Skipping spaces
