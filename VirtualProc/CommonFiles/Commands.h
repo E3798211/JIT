@@ -29,7 +29,9 @@ enum Commands
     JBE,
 
     CALL,
-    RET
+    RET,
+
+    NOP = 90
 };
 
 const std::string  MOV_CMD = "mov";
@@ -51,6 +53,8 @@ const std::string  JBE_CMD = "jbe";
 
 const std::string CALL_CMD = "call";
 const std::string  RET_CMD = "ret";
+
+const std::string  NOP_CMD = "nop";
 
 enum REGS
 {
