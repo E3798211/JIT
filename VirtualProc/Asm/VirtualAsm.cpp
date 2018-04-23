@@ -73,11 +73,14 @@ int Assembler(std::string asm_filename)
     LoadOutputFile(output, cmds, cur_cmd);
     fclose(output);
 
-    std::cout << "labels:\n";
-    for(int i = 0; i < n_labels; i++)
+    ASM_DBG
     {
-        std::cout << "name = '"     << labels[i].name_ << "'\n";
-        std::cout << "address = "   << labels[i].address_ << "\n";
+        std::cout << "labels:\n";
+        for(int i = 0; i < n_labels; i++)
+        {
+            std::cout << "name = '"     << labels[i].name_ << "'\n";
+            std::cout << "address = "   << labels[i].address_ << "\n";
+        }
     }
 
     return V_ERR::V_OK;
@@ -270,7 +273,12 @@ int AssembleLine(   int*& cmds, size_t& cur_cmd, char* beg, char* end,
     // =================================
     else if(cmd == CALL_CMD)
     {
-        //
+        int status = Jump(cmds, cur_cmd, beg, end, labels, *n_labels, CALL);
+        if(status < 0)
+        {
+            std::cout << "Invalid jump at " << cur_cmd << " command\n";
+            return -V_ERR::V_INVALID_ARG;
+        }
     }
     else if(cmd == RET_CMD)
     {
