@@ -9,23 +9,103 @@ int Assembler(std::string asm_filename)
         return -V_ERR::V_LOAD_ERR;
     }
 
-    char cmds[MAX_PROGRAM_SIZE] = {};
+    Label labels[RAM_SIZE] = {};
+    size_t n_labels = 0;
+
+    int cmds[MAX_PROGRAM_SIZE] = {};
     size_t cur_cmd = 0;
 
     char* line_beg = file_content;
     char* line_end = file_content;
-    while(!(*line_end))
+
+    // First pass
+
+    GetLine(&line_beg, &line_end);
+    ASM_DBG std::cout << "Assembling. First pass\n";
+    while(*line_end != '\0')
     {
+        int* tmp = cmds;
+        int status = AssembleLine(tmp, cur_cmd, line_beg, line_end, labels, &n_labels);
+        if(status < 0)
+        {
+            std::cout << "Assembling stopped. Error occured\n";
+            cur_cmd = 0;
+            break;
+        }
+
+        line_beg = line_end;            // Setting to the next line
         GetLine(&line_beg, &line_end);
-        // AssembleLine()
+    }
+
+    // Second pass
+
+    cur_cmd = 0;
+
+    line_beg = file_content;
+    line_end = file_content;
+
+    GetLine(&line_beg, &line_end);
+    ASM_DBG std::cout << "Assembling. Second pass\n";
+    while(*line_end != '\0')
+    {
+        int* tmp = cmds;
+        int status = AssembleLine(tmp, cur_cmd, line_beg, line_end, labels, &n_labels);
+        if(status < 0)
+        {
+            std::cout << "Assembling stopped. Error occured\n";
+            cur_cmd = 0;
+            break;
+        }
+
+        line_beg = line_end;            // Setting to the next line
+        GetLine(&line_beg, &line_end);
     }
 
     delete [] file_content;
 
+    if(!FinalProgrammIsOk(cmds, cur_cmd))
+    {
+        std::cout << "Invalid (negative) codes in programm\n";
+        return -V_ERR::V_INVALID_ARG;
+    }
+
     FILE* output = fopen(DEFAULT_ASM_OUTPUT_FILENAME, "w");
+    LoadOutputFile(output, cmds, cur_cmd);
     fclose(output);
 
+    std::cout << "labels:\n";
+    for(int i = 0; i < n_labels; i++)
+    {
+        std::cout << "name = '"     << labels[i].name_ << "'\n";
+        std::cout << "address = "   << labels[i].address_ << "\n";
+    }
+
     return V_ERR::V_OK;
+}
+
+int LoadOutputFile(FILE* output, int* cmds, size_t n_cmds)
+{
+    assert(output);
+    assert(cmds);
+
+    size_t i = 0;
+    for(; i < n_cmds; i ++)
+    {
+        fprintf(output, "%d\n", cmds[i]);
+    }
+    fprintf(output, "%d\n", END);
+
+    return i;
+}
+
+bool FinalProgrammIsOk(int* cmds, size_t n_cmds)
+{
+    assert(cmds);
+
+    for(int i = 0; i < n_cmds; i++)
+        if(cmds[i] < 0)
+            return false;
+    return true;
 }
 
 char* GetLine(char** beg, char** end)
@@ -36,12 +116,13 @@ char* GetLine(char** beg, char** end)
     while(isspace(**beg))                       (*beg)++;   // skipping spaces
 
     *end = *beg;
-    while(!isspace(**end) && **end != '\0')     (*end)++;
+    while((**end) != '\n' && **end != '\0')     (*end)++;
 
     return *beg;
 }
 
-int AssembleLine(char*& cmds, size_t& cur_cmd, char* beg, char* end)
+int AssembleLine(   int*& cmds, size_t& cur_cmd, char* beg, char* end,
+                    Label* labels, size_t* n_labels)
 {
     assert(cmds);
     assert(beg);
@@ -49,14 +130,29 @@ int AssembleLine(char*& cmds, size_t& cur_cmd, char* beg, char* end)
 
     if(*beg == '#')             // Comment line in assembler
         return V_ERR::V_OK;
-    if(*beg == '$')             // Label
-        int a;                  // NOT IMPLEMENTED
 
-    std::string cmd = GetWord(&beg);
+    std::string cmd;
+    if(*beg == '%')             // New label
+    {
+        beg++;
+        cmd = GetWord(&beg);
+        int label_num = FindLabel(cmd, labels, *n_labels);
+        if(label_num < 0)
+        {
+            labels[*n_labels].name_      = cmd;
+            labels[*n_labels].address_   = cur_cmd;
+            (*n_labels)++;
+        }
+        return V_ERR::V_OK;
+    }
 
+
+    cmd = GetWord(&beg);
     /* */if(cmd == MOV_CMD)
     {
-        //
+        int status = Mov(cmds, cur_cmd, beg, end);
+        if(status < 0)
+        return -V_ERR::V_INVALID_ARG;
     }
     else if(cmd == PUSH_CMD)
     {
@@ -110,31 +206,66 @@ int AssembleLine(char*& cmds, size_t& cur_cmd, char* beg, char* end)
     // =================================
     else if(cmd == JMP_CMD)
     {
-        //
+        int status = Jump(cmds, cur_cmd, beg, end, labels, *n_labels, JMP);
+        if(status < 0)
+        {
+            std::cout << "Invalid jump at " << cur_cmd << " command\n";
+            return -V_ERR::V_INVALID_ARG;
+        }
     }
     else if(cmd == JE_CMD)
     {
-        //
+        int status = Jump(cmds, cur_cmd, beg, end, labels, *n_labels, JE);
+        if(status < 0)
+        {
+            std::cout << "Invalid jump at " << cur_cmd << " command\n";
+            return -V_ERR::V_INVALID_ARG;
+        }
     }
     else if(cmd == JNE_CMD)
     {
-        //
+        int status = Jump(cmds, cur_cmd, beg, end, labels, *n_labels, JNE);
+        if(status < 0)
+        {
+            std::cout << "Invalid jump at " << cur_cmd << " command\n";
+            return -V_ERR::V_INVALID_ARG;
+        }
     }
     else if(cmd == JA_CMD)
     {
-        //
+        int status = Jump(cmds, cur_cmd, beg, end, labels, *n_labels, JA);
+        if(status < 0)
+        {
+            std::cout << "Invalid jump at " << cur_cmd << " command\n";
+            return -V_ERR::V_INVALID_ARG;
+        }
     }
     else if(cmd == JAE_CMD)
     {
-        //
+        int status = Jump(cmds, cur_cmd, beg, end, labels, *n_labels, JAE);
+        if(status < 0)
+        {
+            std::cout << "Invalid jump at " << cur_cmd << " command\n";
+            return -V_ERR::V_INVALID_ARG;
+        }
     }
     else if(cmd == JB_CMD)
     {
-        //
+        int status = Jump(cmds, cur_cmd, beg, end, labels, *n_labels, JB);
+        if(status < 0)
+        {
+            std::cout << "Invalid jump at " << cur_cmd << " command\n";
+            return -V_ERR::V_INVALID_ARG;
+        }
     }
     else if(cmd == JBE_CMD)
     {
-        //
+        int status = Jump(cmds, cur_cmd, beg, end, labels, *n_labels, JBE);
+        if(status < 0)
+        {
+            std::cout << "Invalid jump at " << cur_cmd << " command\n";
+            return -V_ERR::V_INVALID_ARG;
+        }
     }
     // =================================
     else if(cmd == CALL_CMD)
@@ -146,16 +277,189 @@ int AssembleLine(char*& cmds, size_t& cur_cmd, char* beg, char* end)
         cmds[cur_cmd++] = RET;
     }
 
-    while(*beg == ' ')      beg++;
-    if(*beg != '\n')
-    {
-        std::cout << "Extra arguments found. Command number is " << cur_cmd << "\n";
-        return -V_ERR::V_INVALID_ARG;
-    }
-    else
+    while(*beg == ' ' && beg != end)      beg++;
+    if(*beg == '\n' || *beg == '\0')
     {
         return V_ERR::V_OK;
     }
+    else
+    {
+        std::cout << "Extra arguments found. Command number is " << cur_cmd << "\n";
+        ASM_DBG std::cout << "beg = '" << beg << "' \n";
+        return -V_ERR::V_INVALID_ARG;
+    }
+}
+
+int FindLabel(std::string name, Label* labels, size_t n_labels)
+{
+    assert(labels);
+
+    for(size_t i = 0; i < n_labels; i++)
+        if(labels[i].name_ == name)
+            return i;
+    return -V_ERR::V_NOT_FOUND;
+}
+
+int Mov(int*& cmds, size_t& cur_cmd, char*& beg, char*& end)
+{
+    assert(cmds);
+    assert(beg);
+    assert(end);
+
+    std::string cmd;
+    // First - check if next symbol is a bracket
+
+    SkipSpaces(beg);
+    if(*beg == '[')
+    {
+        // Reciever - ram
+        beg++;
+        SkipSpaces(beg);
+        cmd = GetWord(&beg);
+
+        int dst_reg_num = GetRegNum(cmd);
+        if(dst_reg_num < 0)
+        {
+            std::cout << "Invalid argument '" << cmd << "' in mov [ ]\n";
+            return -V_ERR::V_INVALID_ARG;
+        }
+
+        SkipSpaces(beg);
+        if(*beg != ']')
+        {
+            std::cout << "expected ']' in mov []\n";
+            return -V_ERR::V_INVALID_ARG;
+        }
+
+        beg++;
+        SkipSpaces(beg);
+        if(*beg != ',')
+        {
+            std::cout << "expected ',' in mov []\n";
+            return -V_ERR::V_INVALID_ARG;
+        }
+
+        beg++;
+        SkipSpaces(beg);
+        cmd = GetWord(&beg);
+
+        int src_reg_num = GetRegNum(cmd);
+        if(src_reg_num < 0)
+        {
+            std::cout << "Invalid argument '" << cmd << "' in mov []\n";
+            return -V_ERR::V_INVALID_ARG;
+        }
+
+        cmds[cur_cmd++] = MOV_RAM_REG_REG;
+        cmds[cur_cmd++] = dst_reg_num;
+        cmds[cur_cmd++] = src_reg_num;
+
+        return V_ERR::V_OK;
+    }
+
+    // Second - check if next symbol is a register
+
+    cmd = GetWord(&beg);
+    int dst_reg_num = GetRegNum(cmd);
+    if(dst_reg_num < 0)
+    {
+        std::cout << "Invalid argument '" << cmd << "' after mov\n";
+        return -V_ERR::V_INVALID_ARG;
+    }
+
+    SkipSpaces(beg);
+    if(*beg != ',')
+    {
+        std::cout << "expected ',' in mov reg\n";
+        return -V_ERR::V_INVALID_ARG;
+    }
+
+    beg++;
+    SkipSpaces(beg);
+    /* */if(*beg == '[')
+    {
+        // ram
+        beg++;
+        SkipSpaces(beg);
+
+        cmd = GetWord(&beg);
+        int src_reg_num = GetRegNum(cmd);
+        if(src_reg_num < 0)
+        {
+            std::cout << "Invalid argument '" << cmd << "' after mov reg, [\n";
+            return -V_ERR::V_INVALID_ARG;
+        }
+
+        SkipSpaces(beg);
+        if(*beg != ']')
+        {
+            std::cout << "expected ']' in mov reg, []\n";
+            return -V_ERR::V_INVALID_ARG;
+        }
+
+        beg++;
+        cmds[cur_cmd++] = MOV_REG_RAM_REG;
+        cmds[cur_cmd++] = dst_reg_num;
+        cmds[cur_cmd++] = src_reg_num;
+
+        return V_ERR::V_OK;
+    }
+    else if(isdigit(*beg))
+    {
+        cmd = GetWord(&beg);
+
+        cmds[cur_cmd++] = MOV_REG_NUM;
+        cmds[cur_cmd++] = dst_reg_num;
+        cmds[cur_cmd++] = stoi(cmd);
+
+        return V_ERR::V_OK;
+    }
+
+    cmd = GetWord(&beg);
+    int src_reg_num = GetRegNum(cmd);
+    if(src_reg_num < 0)
+    {
+        std::cout << "Invalid argument '" << cmd << "' after mov\n";
+        return -V_ERR::V_INVALID_ARG;
+    }
+
+    cmds[cur_cmd++] = MOV_REG_REG;
+    cmds[cur_cmd++] = dst_reg_num;
+    cmds[cur_cmd++] = src_reg_num;
+
+    return V_ERR::V_OK;
+}
+
+int Jump(   int*& cmds, size_t& cur_cmd, char*& beg, char*& end,
+            Label* labels, size_t n_labels, int jmp)
+{
+    assert(cmds);
+    assert(beg);
+    assert(end);
+    assert(labels);
+    assert(n_labels);
+
+    SkipSpaces(beg);
+    if(*beg != '$')
+    {
+        std::cout << "Expected '$' before label\n";
+        return -V_ERR::V_INVALID_ARG;
+    }
+
+    beg++;
+    std::string cmd = GetWord(&beg);
+
+    int label_num = FindLabel(cmd, labels, n_labels);
+    ASM_DBG
+    {
+        if(label_num < 0)
+            std::cout << "Label '" << cmd << "' not found\n";
+    }
+
+    cmds[cur_cmd++] = jmp;
+    cmds[cur_cmd++] = (label_num >= 0) ? labels[label_num].address_ : -1;
+
+    return V_ERR::V_OK;
 }
 
 int GetRegNum(std::string reg_name)
@@ -183,7 +487,7 @@ int GetRegNum(std::string reg_name)
     Check(BP);
     Check(SP);
 
-    #undef Check()
+    #undef Check
 
     return -V_ERR::V_NOT_FOUND;
 }
@@ -193,7 +497,7 @@ std::string GetWord(char** beg)
     assert(beg);
 
     std::string word;
-    while(isspace(**beg))    (*beg)++;
+    SkipSpaces(*beg);
     while(!isspace(**beg))
     {
         word += **beg;

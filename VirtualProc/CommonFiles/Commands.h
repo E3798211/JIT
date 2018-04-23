@@ -6,6 +6,12 @@ enum Commands
     END = -1,
 
     MOV =  1,
+
+    MOV_REG_NUM,        // mov ax, 0
+    MOV_REG_RAM_REG,    // mov ax, [ bx ]
+    MOV_REG_REG,        // mov ax, bx
+    MOV_RAM_REG_REG,    // mov [ bx ], ax
+
     PUSH,       // reg
     POP,        // reg
 

@@ -14,4 +14,7 @@ char* FileRead(std::string filename) noexcept;
 /// Counts words in file
 size_t CountWords(std::string file_content) noexcept;
 
+/// Skips spaces
+char* SkipSpaces(char*& str);
+
 #endif // SERVICE_H_INCLUDED

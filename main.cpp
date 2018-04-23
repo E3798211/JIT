@@ -5,4 +5,6 @@
 int main()
 {
     VirtualProc a("test");
+
+    Assembler("test");
 }
