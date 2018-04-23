@@ -11,7 +11,7 @@
 
 // =========================================
 
-#define PROC_DBG_
+// #define PROC_DBG_
 #ifdef PROC_DBG_
     #define PROC_DBG
 #else
@@ -42,6 +42,9 @@ private:
     */
     int LoadFile(std::string filename);
 
+    /// Implements comparing in jumps
+    int JumpCode(bool (*check)(int flag_value));
+
 public:
 
     /// Deleting default constructor
@@ -55,7 +58,11 @@ public:
         if(LoadFile(exec_filename))
             throw std::logic_error("Failed to init virtual processor\n");
 
-        program_[MAX_PROGRAM_SIZE - 1] = PROG_END;      // <-- to stop execution finally
+        for(int i = 0; i < N_REGS; i++)
+            registers_[i] = 0;
+        registers_[SP] = -1;        // Stack pointer points over the stack
+
+        program_[MAX_PROGRAM_SIZE - 1] = END;      // <-- to stop execution finally
     }
 
     /// Destructor
@@ -67,11 +74,21 @@ public:
     /// Main "loop"
     int Run()
     {
-        while(registers_[IP] != PROG_END)
+        int status = 0;
+        while(program_[registers_[IP]] != END)
         {
-            try                             { Exec(); }
-            catch(const std::exception& ex) { throw;  }
+            status = Exec();
+            if(status)
+            {
+                std::cout << "Invalid command: couldn't execute " << registers_[IP] << "\n";
+                break;
+            }
+
+            // ShowInfo();
+            PROC_DBG std::cout << "ip = " << registers_[IP] << "\n";
+            // getchar();
         }
+        return status;
     }
 
     /// Executes next command
@@ -79,6 +96,9 @@ public:
         \warning Exec() is responsible for IP's value
     */
     int Exec();                                                                 // <-- Not implemented
+
+    /// Shows info about proc
+    int ShowInfo();
 };
 
 #endif // VIRTUALPROC_H_INCLUDED

@@ -63,12 +63,6 @@ int Assembler(std::string asm_filename)
 
     delete [] file_content;
 
-    if(!FinalProgrammIsOk(cmds, cur_cmd))
-    {
-        std::cout << "Invalid (negative) codes in programm\n";
-        return -V_ERR::V_INVALID_ARG;
-    }
-
     FILE* output = fopen(DEFAULT_ASM_OUTPUT_FILENAME, "w");
     LoadOutputFile(output, cmds, cur_cmd);
     fclose(output);
@@ -92,23 +86,13 @@ int LoadOutputFile(FILE* output, int* cmds, size_t n_cmds)
     assert(cmds);
 
     size_t i = 0;
-    for(; i < n_cmds; i ++)
+    for(; i < n_cmds; i++)
     {
         fprintf(output, "%d\n", cmds[i]);
     }
-    fprintf(output, "%d\n", END);
+    fprintf(output, "%d\n", END);   // Safety
 
     return i;
-}
-
-bool FinalProgrammIsOk(int* cmds, size_t n_cmds)
-{
-    assert(cmds);
-
-    for(int i = 0; i < n_cmds; i++)
-        if(cmds[i] < 0)
-            return false;
-    return true;
 }
 
 char* GetLine(char** beg, char** end)
@@ -228,7 +212,7 @@ int AssembleLine(   int*& cmds, size_t& cur_cmd, char* beg, char* end,
         int dst_reg_num = GetRegNum(cmd);
         if(dst_reg_num < 0)
         {
-            std::cout << "Invalid argument '" << cmd << "' after add\n";
+            std::cout << "Invalid argument '" << cmd << "' after sub\n";
             return -V_ERR::V_INVALID_ARG;
         }
 
@@ -246,7 +230,7 @@ int AssembleLine(   int*& cmds, size_t& cur_cmd, char* beg, char* end,
         int src_reg_num = GetRegNum(cmd);
         if(src_reg_num < 0)
         {
-            std::cout << "Invalid argument '" << cmd << "' after add\n";
+            std::cout << "Invalid argument '" << cmd << "' after sub\n";
             return -V_ERR::V_INVALID_ARG;
         }
 
@@ -260,7 +244,7 @@ int AssembleLine(   int*& cmds, size_t& cur_cmd, char* beg, char* end,
         int src_reg_num = GetRegNum(cmd);
         if(src_reg_num < 0)
         {
-            std::cout << "Invalid argument '" << cmd << "' after add\n";
+            std::cout << "Invalid argument '" << cmd << "' after div\n";
             return -V_ERR::V_INVALID_ARG;
         }
 
@@ -273,7 +257,7 @@ int AssembleLine(   int*& cmds, size_t& cur_cmd, char* beg, char* end,
         int src_reg_num = GetRegNum(cmd);
         if(src_reg_num < 0)
         {
-            std::cout << "Invalid argument '" << cmd << "' after add\n";
+            std::cout << "Invalid argument '" << cmd << "' after mul\n";
             return -V_ERR::V_INVALID_ARG;
         }
 
@@ -344,6 +328,38 @@ int AssembleLine(   int*& cmds, size_t& cur_cmd, char* beg, char* end,
             return -V_ERR::V_INVALID_ARG;
         }
     }
+    else if(cmd == CMP_CMD)
+    {
+        cmd = GetWord(&beg);
+        int dst_reg_num = GetRegNum(cmd);
+        if(dst_reg_num < 0)
+        {
+            std::cout << "Invalid argument '" << cmd << "' after cmp\n";
+            return -V_ERR::V_INVALID_ARG;
+        }
+
+        SkipSpaces(beg);
+        if(*beg != ',')
+        {
+            std::cout << "expected ',' in cmp\n";
+            return -V_ERR::V_INVALID_ARG;
+        }
+
+        beg++;
+        SkipSpaces(beg);
+
+        cmd = GetWord(&beg);
+        int src_reg_num = GetRegNum(cmd);
+        if(src_reg_num < 0)
+        {
+            std::cout << "Invalid argument '" << cmd << "' after cmp\n";
+            return -V_ERR::V_INVALID_ARG;
+        }
+
+        cmds[cur_cmd++] = CMP;
+        cmds[cur_cmd++] = dst_reg_num;
+        cmds[cur_cmd++] = src_reg_num;
+    }
     // =================================
     else if(cmd == CALL_CMD)
     {
@@ -361,6 +377,24 @@ int AssembleLine(   int*& cmds, size_t& cur_cmd, char* beg, char* end,
     else if(cmd == NOP_CMD)
     {
         cmds[cur_cmd++] = NOP;
+    }
+    // =================================
+    else if(cmd == IN_CMD)
+    {
+        cmds[cur_cmd++] = IN;
+    }
+    else if(cmd == OUT_CMD)
+    {
+        cmds[cur_cmd++] = OUT;
+    }
+    else if(cmd == END_CMD)
+    {
+        cmds[cur_cmd++] = END;
+    }
+    else
+    {
+        std::cout << "Unknown command '" << cmd << "'\n";
+        return -V_ERR::V_UNKNOWN;
     }
 
     while(*beg == ' ' && beg != end)      beg++;
@@ -523,7 +557,6 @@ int Jump(   int*& cmds, size_t& cur_cmd, char*& beg, char*& end,
     assert(beg);
     assert(end);
     assert(labels);
-    assert(n_labels);
 
     SkipSpaces(beg);
     if(*beg != '$')

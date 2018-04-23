@@ -10,7 +10,7 @@
 #include "../CommonFiles/CPUProperties.h"
 #include "../CommonFiles/Commands.h"
 
-#define ASM_DBG_
+// #define ASM_DBG_
 #ifdef ASM_DBG_
     #define ASM_DBG
 #else
@@ -37,9 +37,6 @@ int Assembler(std::string asm_file_name);
     \return Amount of commands printed
 */
 int LoadOutputFile(FILE* output, int* cmds, size_t n_cmds);
-
-/// Checks if there are any negative numbers
-bool FinalProgrammIsOk(int* cmds, size_t n_cmds);
 
 /// Gets line
 /**

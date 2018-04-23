@@ -4,7 +4,7 @@
 
 int main()
 {
-    VirtualProc a("test");
-
     Assembler("test");
+    VirtualProc a("AsmOut");
+    a.Run();
 }

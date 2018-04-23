@@ -6,7 +6,9 @@ enum V_ERR
     V_OK,
     V_LOAD_ERR,
     V_NOT_FOUND,
-    V_INVALID_ARG
+    V_INVALID_ARG,
+    V_UNDERFLOW,
+    V_UNKNOWN
 };
 
 #endif // ERRORS_H_INCLUDED
