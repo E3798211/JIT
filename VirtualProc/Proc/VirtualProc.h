@@ -4,7 +4,7 @@
 #include <iostream>
 #include <string>
 
-#include "../CommonFiles/Errors.h"
+#include "../../Service/Errors.h"
 #include "../../Service/Service.h"
 #include "../CommonFiles/CPUProperties.h"
 #include "../CommonFiles/Commands.h"

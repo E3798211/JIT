@@ -1,0 +1,14 @@
+#ifndef ERRORS_H_INCLUDED
+#define ERRORS_H_INCLUDED
+
+enum ERROR
+{
+    OK,
+    LOAD_ERR,
+    NOT_FOUND,
+    INVALID_ARG,
+    UNDERFLOW,
+    UNKNOWN
+};
+
+#endif // ERRORS_H_INCLUDED
