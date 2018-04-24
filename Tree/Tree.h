@@ -143,12 +143,14 @@ public:
 
     Tree<data_T>* Left(Tree<data_T>* that)      noexcept
     {
+        delete left_;
         left_ = that;
         return left_;
     }
 
     Tree<data_T>* Right(Tree<data_T>* that)     noexcept
     {
+        delete right_;
         right_ = that;
         return right_;
     }
