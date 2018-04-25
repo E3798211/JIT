@@ -1,0 +1,8 @@
+digraph G {
+node[shape = record];
+24635520  [label = "{ Pointer | Data | Left | Right }  | { 0x177e880 | { 5 | 7 | 9 } | 0x177ecc0 | 0x177ecf0 }"];
+24636608  [label = "{ Pointer | Data | Left | Right }  | { 0x177ecc0 | { 5 | 7 | 9 } | (nil) | (nil) }"];
+24636656  [label = "{ Pointer | Data | Left | Right }  | { 0x177ecf0 | { 5 | 7 | 9 } | (nil) | (nil) }"];
+24635520 -> 24636608 [color = blue];
+24635520 -> 24636656 [color = green];
+}

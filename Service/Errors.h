@@ -8,7 +8,8 @@ enum ERROR
     NOT_FOUND,
     INVALID_ARG,
     UNDERFLOW,
-    UNKNOWN
+    UNKNOWN,
+    FILE_NOT_OPENED
 };
 
 #endif // ERRORS_H_INCLUDED

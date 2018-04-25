@@ -4,10 +4,16 @@
 #include "VirtualProc/Asm/VirtualAsm.h"
 #include "Tree/Tree.h"
 
-int Printer(Tree<int>* node)
+
+/*
+ *
+ *  You can insert data with "{ a | b | c }"
+ *
+ */
+
+int Printer(const int& a, FILE* output)
 {
-    std::cout << "Node = " << node << "\n";
-    return 0;
+    return fprintf(output, "{ 5 | 7 | 9 }");
 }
 
 int main()
@@ -18,8 +24,13 @@ int main()
     a.Run();
 */
     Tree<int>* b1 = new Tree<int>;
+    Tree<int>* b2 = new Tree<int>;
+    Tree<int>* b3 = new Tree<int>;
 
-    b1->InfixVisitor(Printer);
+    b1->Left(b2);
+    b1->Right(b3);
+
+    b1->CreateDotOutput(Printer);
 
     delete b1;
 }

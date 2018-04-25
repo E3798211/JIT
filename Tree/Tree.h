@@ -4,6 +4,7 @@
 #include <iostream>
 
 #include "../Service/Errors.h"
+#include "../Service/DotSyntax.h"
 
 #define TREE_DBG_
 #ifdef TREE_DBG_
@@ -12,10 +13,6 @@
     #define TREE_DBG if(0)
 #endif // TREE_DBG_
 
-
-
-const char DEFAULT_DOT_CODE_OUTPUT[]    =   "dotcodeoutput";
-const char DEFAULT_DOT_OUTPUT[]         =   "TreeGraph";
 
 template<typename data_T>
 class Tree
@@ -33,6 +30,15 @@ private:
 
     /// Pointer to the parent
     Tree<data_T>* parent_   =   nullptr;
+
+    /// Prints node
+    template<typename... ExtraArgs>
+    static int PrintTree(  Tree<data_T>* root, FILE* output,
+                    int (*print_data_to_dot)(const data_T&, FILE*, ExtraArgs...),
+                    ExtraArgs... to_finction);
+
+    /// Sets connection between nodes
+    static int SetConnections(Tree<data_T>* root, FILE* output);
 
 public:
 
@@ -175,22 +181,30 @@ public:
     /**
         \warning apply_func must take only one pointer to the node
     */
-    int PrefixVisitor(int (*apply_func)(Tree<data_T>*));
+    template<typename... ExtraArgs>
+    int PrefixVisitor(int(*apply_func)(Tree<data_T>*, ExtraArgs...), ExtraArgs... to_function);
 
     /// Applies function to the left, then right, then node (if they are not nullptr)
     /**
         \warning apply_func must take only one pointer to the node
     */
-    int PostfixVisitor(int (*apply_func)(Tree<data_T>*));
+    template<typename... ExtraArgs>
+    int PostfixVisitor(int (*apply_func)(Tree<data_T>*, ExtraArgs...), ExtraArgs... to_function);
 
     /// Applies function to the left, then node, then right (if they are not nullptr)
     /**
         \warning apply_func must take only one pointer to the node
     */
-    int InfixVisitor(int (*apply_func)(Tree<data_T>*));
+    template<typename... ExtraArgs>
+    int InfixVisitor(int (*apply_func)(Tree<data_T>*, ExtraArgs...), ExtraArgs... to_function);
 
     /// Creates output for DOT
-    int CreateDotOutput();                              // <-- NOT IMPLEMENTED
+    /**
+        \param [in] print_data_to_dot Function that prints objects of data's type in DOT format
+    */
+    template<typename... ExtraArgs>
+    int CreateDotOutput(int (*print_data_to_dot)(const data_T&, FILE*, ExtraArgs...),
+                        ExtraArgs... to_function);
 };
 
 #include "Tree.hpp"
