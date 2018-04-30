@@ -7,6 +7,7 @@ enum ERROR
     LOAD_ERR,
     NOT_FOUND,
     INVALID_ARG,
+    OVERFLOW,
     UNDERFLOW,
     UNKNOWN,
     FILE_NOT_OPENED

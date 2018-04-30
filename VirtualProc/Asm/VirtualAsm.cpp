@@ -184,7 +184,7 @@ int AssembleLine(   int*& cmds, size_t& cur_cmd, char* beg, char* end,
             return -ERROR::INVALID_ARG;
         }
 
-        SkipSpaces(beg);
+        SkipSpaces(&beg);
         if(*beg != ',')
         {
             std::cout << "expected ',' in mov []\n";
@@ -192,7 +192,7 @@ int AssembleLine(   int*& cmds, size_t& cur_cmd, char* beg, char* end,
         }
 
         beg++;
-        SkipSpaces(beg);
+        SkipSpaces(&beg);
 
         cmd = GetWord(&beg);
         int src_reg_num = GetRegNum(cmd);
@@ -216,7 +216,7 @@ int AssembleLine(   int*& cmds, size_t& cur_cmd, char* beg, char* end,
             return -ERROR::INVALID_ARG;
         }
 
-        SkipSpaces(beg);
+        SkipSpaces(&beg);
         if(*beg != ',')
         {
             std::cout << "expected ',' in mov []\n";
@@ -224,7 +224,7 @@ int AssembleLine(   int*& cmds, size_t& cur_cmd, char* beg, char* end,
         }
 
         beg++;
-        SkipSpaces(beg);
+        SkipSpaces(&beg);
 
         cmd = GetWord(&beg);
         int src_reg_num = GetRegNum(cmd);
@@ -338,7 +338,7 @@ int AssembleLine(   int*& cmds, size_t& cur_cmd, char* beg, char* end,
             return -ERROR::INVALID_ARG;
         }
 
-        SkipSpaces(beg);
+        SkipSpaces(&beg);
         if(*beg != ',')
         {
             std::cout << "expected ',' in cmp\n";
@@ -346,7 +346,7 @@ int AssembleLine(   int*& cmds, size_t& cur_cmd, char* beg, char* end,
         }
 
         beg++;
-        SkipSpaces(beg);
+        SkipSpaces(&beg);
 
         cmd = GetWord(&beg);
         int src_reg_num = GetRegNum(cmd);
@@ -429,12 +429,12 @@ int Mov(int*& cmds, size_t& cur_cmd, char*& beg, char*& end)
     std::string cmd;
     // First - check if next symbol is a bracket
 
-    SkipSpaces(beg);
+    SkipSpaces(&beg);
     if(*beg == '[')
     {
         // Reciever - ram
         beg++;
-        SkipSpaces(beg);
+        SkipSpaces(&beg);
         cmd = GetWord(&beg);
 
         int dst_reg_num = GetRegNum(cmd);
@@ -444,7 +444,7 @@ int Mov(int*& cmds, size_t& cur_cmd, char*& beg, char*& end)
             return -ERROR::INVALID_ARG;
         }
 
-        SkipSpaces(beg);
+        SkipSpaces(&beg);
         if(*beg != ']')
         {
             std::cout << "expected ']' in mov []\n";
@@ -452,7 +452,7 @@ int Mov(int*& cmds, size_t& cur_cmd, char*& beg, char*& end)
         }
 
         beg++;
-        SkipSpaces(beg);
+        SkipSpaces(&beg);
         if(*beg != ',')
         {
             std::cout << "expected ',' in mov []\n";
@@ -460,7 +460,7 @@ int Mov(int*& cmds, size_t& cur_cmd, char*& beg, char*& end)
         }
 
         beg++;
-        SkipSpaces(beg);
+        SkipSpaces(&beg);
         cmd = GetWord(&beg);
 
         int src_reg_num = GetRegNum(cmd);
@@ -487,7 +487,7 @@ int Mov(int*& cmds, size_t& cur_cmd, char*& beg, char*& end)
         return -ERROR::INVALID_ARG;
     }
 
-    SkipSpaces(beg);
+    SkipSpaces(&beg);
     if(*beg != ',')
     {
         std::cout << "expected ',' in mov reg\n";
@@ -495,12 +495,12 @@ int Mov(int*& cmds, size_t& cur_cmd, char*& beg, char*& end)
     }
 
     beg++;
-    SkipSpaces(beg);
+    SkipSpaces(&beg);
     /* */if(*beg == '[')
     {
         // ram
         beg++;
-        SkipSpaces(beg);
+        SkipSpaces(&beg);
 
         cmd = GetWord(&beg);
         int src_reg_num = GetRegNum(cmd);
@@ -510,7 +510,7 @@ int Mov(int*& cmds, size_t& cur_cmd, char*& beg, char*& end)
             return -ERROR::INVALID_ARG;
         }
 
-        SkipSpaces(beg);
+        SkipSpaces(&beg);
         if(*beg != ']')
         {
             std::cout << "expected ']' in mov reg, []\n";
@@ -558,7 +558,7 @@ int Jump(   int*& cmds, size_t& cur_cmd, char*& beg, char*& end,
     assert(end);
     assert(labels);
 
-    SkipSpaces(beg);
+    SkipSpaces(&beg);
     if(*beg != '$')
     {
         std::cout << "Expected '$' before label\n";
@@ -611,19 +611,6 @@ int GetRegNum(std::string reg_name)
     return -ERROR::NOT_FOUND;
 }
 
-std::string GetWord(char** beg)
-{
-    assert(beg);
 
-    std::string word;
-    SkipSpaces(*beg);
-    while(!isspace(**beg))
-    {
-        word += **beg;
-        (*beg)++;
-    }
-
-    return word;
-}
 
 

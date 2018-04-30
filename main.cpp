@@ -2,7 +2,8 @@
 
 #include "VirtualProc/Proc/VirtualProc.h"
 #include "VirtualProc/Asm/VirtualAsm.h"
-#include "Tree/Tree.h"
+// #include "Tree/Tree.h"
+#include "RecDescend/RecDescend.h"
 
 
 /*
@@ -23,6 +24,7 @@ int main()
     VirtualProc a("AsmOut");
     a.Run();
 */
+/*
     Tree<int>* b1 = new Tree<int>;
     Tree<int>* b2 = new Tree<int>;
     Tree<int>* b3 = new Tree<int>;
@@ -33,5 +35,10 @@ int main()
     b1->CreateDotOutput(Printer);
 
     delete b1;
+*/
+
+    LoadProgramm("test");
+    BuildSyntaxTree();
+
 }
 

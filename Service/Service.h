@@ -15,6 +15,12 @@ char* FileRead(std::string filename) noexcept;
 size_t CountWords(std::string file_content) noexcept;
 
 /// Skips spaces
-char* SkipSpaces(char*& str);
+char* SkipSpaces(char** str);
+
+/// Gets word
+/**
+    Sets pointer to the end of the word
+*/
+std::string GetWord(char** str);
 
 #endif // SERVICE_H_INCLUDED

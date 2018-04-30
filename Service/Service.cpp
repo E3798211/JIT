@@ -48,10 +48,27 @@ size_t CountWords(std::string file_content) noexcept
     return n_words;
 }
 
-char* SkipSpaces(char*& str)
+char* SkipSpaces(char** str)
 {
-    assert(str);
-    while(isspace(*str))    str++;
+    assert(*str);
+    while(isspace(**str))    (*str)++;
+
+    return *str;
+}
+
+std::string GetWord(char** beg)
+{
+    assert(beg);
+
+    std::string word;
+    SkipSpaces(beg);
+    while(!isspace(**beg) && (**beg) != '\0')
+    {
+        word += **beg;
+        (*beg)++;
+    }
+
+    return word;
 }
 
 

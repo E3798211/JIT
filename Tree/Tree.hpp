@@ -7,7 +7,7 @@ int Tree<data_T>::PrintTree(Tree<data_T>* root, FILE* output,
                             int (*print_data_to_dot)(const data_T&, FILE*, ExtraArgs...),
                             ExtraArgs... to_finction)
 {
-    assert(output);
+    // assert(output);
     assert(root);
     assert(print_data_to_dot);
 
@@ -42,8 +42,8 @@ int Tree<data_T>::PrintTree(Tree<data_T>* root, FILE* output,
 template<typename data_T>
 int Tree<data_T>::SetConnections(Tree<data_T>* root, FILE* output)
 {
+    // assert(output);
     assert(root);
-    assert(output);
 
     if(root->Left())
     {
