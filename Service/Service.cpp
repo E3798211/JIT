@@ -71,5 +71,27 @@ std::string GetWord(char** beg)
     return word;
 }
 
+bool IsOneOf(const char to_compare, const char* with)
+{
+    while(*with != '\0')
+    {
+        if(to_compare == *with)     return true;
+        with++;
+    }
+    return false;
+}
+
+std::string GetWordExceptSymbols(char** str, char* symbols)
+{
+    assert(symbols);
+
+    std::string word;
+    while(!IsOneOf(**str, symbols) && **str != '\0')
+    {
+        word += **str;
+        (*str)++;
+    }
+    return word;
+}
 
 

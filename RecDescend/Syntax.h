@@ -5,6 +5,8 @@ enum TOKEN_TYPE
 {
     CONSTANT,
     VARIABLE,
+    FUNCTION,
+    FUNC_CALL_PARAMETER,
     OPERATOR
 };
 

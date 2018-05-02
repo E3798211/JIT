@@ -91,6 +91,34 @@ public:
     }
 };
 
+// =========================================
+
+/// Gets word without changing pointer
+/**
+    \warning Expects 'cur_pos' initialized
+*/
+std::string CheckName();
+
+/// Gets word with changing pointer
+/**
+    \warning Expects 'cur_pos' initialized
+*/
+std::string GetName();
+
+/// Checks if such function exists
+/**
+    \return Number of the function or -ERROR::NOT_FOUND in case of fault
+*/
+int FunctionNum(const std::string& to_check);
+
+/// Checks if such varialbe defined
+/**
+    \return Number of the variable or -ERROR::NOT_FOUND in case of fault
+*/
+int VariableNum(const std::string& to_check);
+
+// =========================================
+
 /// Loads programm
 /**
     Inits 'cur_pos'
@@ -102,6 +130,12 @@ int LoadProgramm(std::string filename);
     \warning    Expects global 'cur_pos' ititialized
 */
 int ErrorLine();
+
+/// Gets call of the function
+Tree<Token>* GetFunctionCall();
+
+/// Gets call arguments of the function
+Tree<Token>* GetFunctionCallArguments();
 
 /// Breaks whole programm into tokens and fills array with them
 /**

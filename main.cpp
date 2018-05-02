@@ -5,7 +5,7 @@
 // #include "Tree/Tree.h"
 #include "RecDescend/RecDescend.h"
 
-
+#include <cstring>
 /*
  *
  *  You can insert data with "{ a | b | c }"
