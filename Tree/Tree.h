@@ -91,7 +91,7 @@ public:
     /// Destructor
     ~Tree()
     {
-        TREE_DBG std::cout << "Default tree destructor\n";
+        TREE_DBG std::cout << "\033[0;31mDefault tree destructor\033[0m\n";
         if(left_)
         {
             delete left_;
@@ -147,7 +147,7 @@ public:
         return parent_;
     }
 
-    Tree<data_T>* Left(Tree<data_T>* that)      noexcept
+    Tree<data_T>* Left (Tree<data_T>* that)     noexcept
     {
         delete left_;
         left_ = that;
@@ -159,6 +159,18 @@ public:
         delete right_;
         right_ = that;
         return right_;
+    }
+
+    Tree<data_T>* FastRigth(Tree<data_T>* that) noexcept
+    {
+        right_ = that;
+        return right_;
+    }
+
+    Tree<data_T>* FastLeft (Tree<data_T>* that) noexcept
+    {
+        left_  = that;
+        return  left_;
     }
 
     const data_T& Data(const data_T& that)

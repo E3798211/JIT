@@ -17,6 +17,13 @@ int Printer(const int& a, FILE* output)
     return fprintf(output, "{ 5 | 7 | 9 }");
 }
 
+/*
+int Dump(const Token& a, FILE* output)
+{
+    return fprintf(output, "{ %s | %d | %d }", a.Name().c_str(), a.Type(), a.Value());
+}
+*/
+
 int main()
 {
 /*
@@ -38,7 +45,10 @@ int main()
 */
 
     LoadProgramm("test");
-    BuildSyntaxTree();
+    Tree<Token>* syntax_tree = BuildSyntaxTree();
+
+//    syntax_tree->CreateDotOutput(Dump);
+    // Tree<Token>::CreateDotOutput(syntax_tree, Dump);
 
 }
 

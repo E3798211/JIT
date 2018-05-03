@@ -69,16 +69,20 @@ std::string GetName()
     return word;
 }
 
-int FunctionNum(const std::string& to_check)
+int FunctionNum(const std::string to_check)
 {
-    for(int i = 0; i <= cur_function; i++)
+    for(int i = 0; i < cur_function; i++)
+    {
+        std::cout << "comparing '" << to_check << "' with '" << functions[i] << "'\n";
         if(to_check == functions[i])    return i;
+    }
+    std::cout << "No one fits\n";
     return -ERROR::NOT_FOUND;
 }
 
 int VariableNum(const std::string& to_check)
 {
-    for(int i = 0; i <= cur_variable; i++)
+    for(int i = 0; i < cur_variable; i++)
         if(to_check == variables[i])    return i;
     return -ERROR::NOT_FOUND;
 }
@@ -115,6 +119,8 @@ int ErrorLine()
 Tree<Token>* GetFunctionCallArguments()     // Arguments grow to the right
 {
     SkipSpaces(&cur_pos);
+
+    /*
     if(*cur_pos != '(')
     {
         std::cout << "Expected '(' on line " << ErrorLine() << "\n";
@@ -122,6 +128,7 @@ Tree<Token>* GetFunctionCallArguments()     // Arguments grow to the right
         return nullptr;
     }
     cur_pos++;
+    */
 
     Tree<Token>*   first_call_parameter = nullptr;
     Tree<Token>* current_call_parameter = nullptr;
@@ -133,23 +140,35 @@ Tree<Token>* GetFunctionCallArguments()     // Arguments grow to the right
         if(parse_error)
         {
             delete    next_call_parameter;
-            delete current_call_parameter;
-            if(first_call_parameter != current_call_parameter)  // Preventing double free
-                delete   first_call_parameter;
+            delete   first_call_parameter;
+            return nullptr;
+        }
+
+        tokens[cur_tok] = { FUNC_CALL_PARAM_NAME, FUNC_CALL_PARAMETER, 0 };
+        try
+        {
+            current_call_parameter = new Tree<Token> (tokens[cur_tok]);
+            cur_tok++;
+        }
+        catch(const std::bad_alloc& ex)
+        {
+            std::cout << "Failed to allocate memory for new function parameter\n";
+            delete next_call_parameter;
+            delete first_call_parameter;
             return nullptr;
         }
 
         // it is the first parameter
         if(!first_call_parameter)
         {
-            current_call_parameter = next_call_parameter;
+            current_call_parameter->Left(next_call_parameter);
               first_call_parameter = current_call_parameter;
 
             // All three pointers are the same
         }
         else
         {
-            current_call_parameter->Right(next_call_parameter);
+            current_call_parameter->Left(next_call_parameter);
             current_call_parameter = current_call_parameter->Right();
 
             // Do not touch first_call_parameter after its initialization
@@ -157,9 +176,11 @@ Tree<Token>* GetFunctionCallArguments()     // Arguments grow to the right
 
     }while(next_call_parameter != nullptr);
 
+    /*
     if(*cur_pos != ')')
     {
         std::cout << "Expected ')' on line " << ErrorLine() << "\n";
+        std::cout << " '" << *cur_pos << "' here\n";
         parse_error = -ERROR::INVALID_ARG;
 
         delete first_call_parameter;
@@ -167,6 +188,7 @@ Tree<Token>* GetFunctionCallArguments()     // Arguments grow to the right
         return nullptr;
     }
     cur_pos++;
+    */
 
     return first_call_parameter;
 }
@@ -195,49 +217,66 @@ Tree<Token>* GetFunctionCall()
     return function;
 }
 
-int BuildSyntaxTree()           // <-- TO BE FINISHED
+Tree<Token>* BuildSyntaxTree()           // <-- TO BE FINISHED
 {
     assert(cur_pos);
+
+    functions[cur_function++] = "FFunction";
+
+    tokens[cur_tok] = {"GLOBAL", OPERATOR, 0};
+    Tree<Token>* first = new Tree<Token> (tokens[cur_tok++]);
+    Tree<Token>* current = first;
 
     while(*cur_pos != '\0')
     {
         // GetFunction
-        Tree<Token>* cur = GetN();
+        // Tree<Token>* cur = GetN();
+        // Tree<Token>* cur = GetE();
+        // Tree<Token>* cur = GetOperator();
+        Tree<Token>* cur = GetT();
+
+        current->Left(cur);
+
+        tokens[cur_tok] = { "GLOBAL", OPERATOR, 0 };
+        current->Right(new Tree<Token> (tokens[cur_tok++]));
+        current = current->Right();
 
         // If error occured
         if(parse_error < 0)
         {
             std::cout << "Error occured on line " << ErrorLine() << "\n";
-            delete cur;
+            delete first;
             delete [] programm;
-            return -ERROR::INVALID_ARG;
+            return nullptr;
         }
 
         // If buffer overflown
         if(cur_tok >= MAX_TOKENS)
         {
             std::cout << "Too many tokens created. Please create smaller programm :)\n";
-            delete cur;
+            // delete cur;
+            delete first;
             delete [] programm;
-            return -ERROR::OVERFLOW;
+            return nullptr;
         }
 
         cur_pos++;
 
         // MAYBE CONCATENATE THEM???
+
+        std::cout << "LOOOOOOOOOOOOOOOOOOOP\n";
     }
 
     delete [] programm;
-    return ERROR::OK;
-
-    // RETURN TREE
+    return first;
 }
 
 Tree<Token>* GetN()
 {
     if(parse_error < 0)     return nullptr;
 
-    std::string word = GetWord(&cur_pos);
+    char* beginning = cur_pos;
+    std::string word = GetWordExceptSymbols(&cur_pos, " \t\n();{}");
     int value = 0;
 
     try
@@ -247,7 +286,7 @@ Tree<Token>* GetN()
     catch(...)
     {
         std::cout << "Failed to transform to integer: '" << word << "' on line " << ErrorLine() << "\n";
-        parse_error =   -ERROR::INVALID_ARG;
+        cur_pos = beginning;
         return nullptr;
     }
 
@@ -275,6 +314,8 @@ Tree<Token>* GetP()     // ( expr ), ( ), 123, VarName, FuncName
     Tree<Token>* elem = nullptr;
     SkipSpaces(&cur_pos);
 
+    if(*cur_pos == '\0')
+        return nullptr;
     if(*cur_pos == '(')
     {
         cur_pos++;
@@ -292,13 +333,6 @@ Tree<Token>* GetP()     // ( expr ), ( ), 123, VarName, FuncName
             elem = GetE();
         }
 
-        // In case of fault just returning. Everything is already printed
-        if(parse_error < 0)
-        {
-            delete elem;
-            return nullptr;
-        }
-
         if(*cur_pos != ')')
         {
             std::cout << "Error in line " << ErrorLine() << ": expected ')'\n";
@@ -312,7 +346,8 @@ Tree<Token>* GetP()     // ( expr ), ( ), 123, VarName, FuncName
     {
         elem = GetFunctionCall();
     }
-    else if(VariableNum(CheckName()) >= 0)     // Try word. Maybe Variable -> GetVariable()
+    // else if(VariableNum(CheckName()) >= 0)     // Try word. Maybe Variable -> GetVariable()
+    else if(false)     // Try word. Maybe Variable -> GetVariable()
     {
         // int var_num  = VariableNum(GetName());
         //
@@ -322,16 +357,121 @@ Tree<Token>* GetP()     // ( expr ), ( ), 123, VarName, FuncName
         elem = GetN();
     }
 
+    // In case of fault just returning. Everything is already printed
+    if(parse_error < 0)
+    {
+        delete elem;
+        return nullptr;
+    }
+
     return elem;
+}
+
+int Dump(const Token& a, FILE* output)
+{
+    return fprintf(output, "{ %s | %d | %d }", a.Name().c_str(), a.Type(), a.Value());
 }
 
 Tree<Token>* GetT()     // (expr) * (expr)
 {
-    //
+    if(*cur_pos == '\0')    return nullptr;
+
+    Tree<Token>* first_expression = GetP();
+    if(parse_error < 0)
+    {
+        delete first_expression;
+        return nullptr;
+    }
+
+    // Tree<Token>*     top_expression = first_expression;
+    Tree<Token>* current_expression = first_expression;
+    Tree<Token>*    next_expression = nullptr;
+    Tree<Token>*     tmp_expression = nullptr;
+
+    int times_in_loop = 0;
+    SkipSpaces(&cur_pos);
+    while(*cur_pos == '*' || *cur_pos == '/')
+    {
+        std::cout << "\t\t\tIn loop in GetT()\n";
+        int operation = *cur_pos;
+        cur_pos++;
+
+        // Getting expression
+        next_expression = GetP();
+        if(parse_error < 0)
+        {
+            delete first_expression;
+            return nullptr;
+        }
+
+        // Creating new node
+        tokens[cur_tok] = { BIN_OPERATION_NAME, BIN_OPERATION, operation };
+        try
+        {
+            tmp_expression = new Tree<Token> (tokens[cur_tok]);
+            cur_tok++;
+        }
+        catch(const std::bad_alloc& ex)
+        {
+            std::cout << "Failed to allocate memory in GetT()\n";
+            parse_error = -ERROR::UNKNOWN;
+            delete first_expression;
+            delete  next_expression;
+            return nullptr;
+        }
+
+        // Placing nodes to the right places
+        if(times_in_loop == 0)
+        {
+            // Nothing is set correct way
+            Tree<Token>* tmp = first_expression;
+
+            first_expression = tmp_expression;
+            first_expression->Left (tmp);
+            first_expression->Right(next_expression);
+            current_expression = first_expression;
+        }
+        else
+        {
+            // Habitual algorythm
+            Tree<Token>* tmp = current_expression->Right();
+
+            current_expression->FastRigth(tmp_expression);
+            current_expression = current_expression->Right();
+            current_expression->Left (tmp);
+            current_expression->Right(next_expression);
+        }
+
+        times_in_loop++;
+    }
+
+    first_expression->CreateDotOutput(Dump);
+
+    return first_expression;
 }
 
 Tree<Token>* GetE()     // GetT + GetT
 {
     // Empty expr is ok
+    std::cout << " In GetE()\n";
+    std::cout << "Shift = " << cur_pos - programm << ", left: " << cur_pos << "\n";
+    Tree<Token>* elem = GetP();
+
+    // SkipSpaces(&cur_pos);
+
+    std::cout << "\t\tReturning from GetE()\n";
+    return elem;
+
 }
 
+Tree<Token>* GetOperator()
+{
+    Tree<Token>* elem = GetE();
+    std::cout << "\t\tIn GetOp() before sc check: '" << *cur_pos << "'\n";
+    if(*cur_pos != ';')
+    {
+        std::cout << "Expected cemicolon on line " << ErrorLine() << "\n";
+        return nullptr;
+    }
+    return elem;
+}

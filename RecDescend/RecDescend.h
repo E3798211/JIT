@@ -109,7 +109,7 @@ std::string GetName();
 /**
     \return Number of the function or -ERROR::NOT_FOUND in case of fault
 */
-int FunctionNum(const std::string& to_check);
+int FunctionNum(const std::string to_check);
 
 /// Checks if such varialbe defined
 /**
@@ -141,7 +141,7 @@ Tree<Token>* GetFunctionCallArguments();
 /**
     \warning    Expects global 'cur_pos' ititialized
 */
-int BuildSyntaxTree();                                                  // <-- Tree has to be killed
+Tree<Token>* BuildSyntaxTree();                                                  // <-- Tree has to be killed
 
 /// Gets N
 Tree<Token>* GetN();
@@ -154,5 +154,8 @@ Tree<Token>* GetT();
 
 /// Gets E
 Tree<Token>* GetE();
+
+/// Gets Operator
+Tree<Token>* GetOperator();
 
 #endif // RECDESCEND_H_INCLUDED

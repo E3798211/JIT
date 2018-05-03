@@ -1,8 +1,30 @@
 digraph G {
 node[shape = record];
-24635520  [label = "{ Pointer | Data | Left | Right }  | { 0x177e880 | { 5 | 7 | 9 } | 0x177ecc0 | 0x177ecf0 }"];
-24636608  [label = "{ Pointer | Data | Left | Right }  | { 0x177ecc0 | { 5 | 7 | 9 } | (nil) | (nil) }"];
-24636656  [label = "{ Pointer | Data | Left | Right }  | { 0x177ecf0 | { 5 | 7 | 9 } | (nil) | (nil) }"];
-24635520 -> 24636608 [color = blue];
-24635520 -> 24636656 [color = green];
+22572944  [label = "{ Pointer | Data | Left | Right }  | { 0x1586f90 | { bin operation | 4 | 42 } | 0x1586ce0 | 0x1587120 }"];
+22572256  [label = "{ Pointer | Data | Left | Right }  | { 0x1586ce0 | { FFunction | 2 | 0 } | (nil) | 0x1586d80 }"];
+22572416  [label = "{ Pointer | Data | Left | Right }  | { 0x1586d80 | { call param | 3 | 0 } | 0x1586d30 | (nil) }"];
+22572336  [label = "{ Pointer | Data | Left | Right }  | { 0x1586d30 | { constant | 0 | 5 } | (nil) | (nil) }"];
+22573344  [label = "{ Pointer | Data | Left | Right }  | { 0x1587120 | { bin operation | 4 | 42 } | 0x1586e20 | 0x1587210 }"];
+22572576  [label = "{ Pointer | Data | Left | Right }  | { 0x1586e20 | { FFunction | 2 | 0 } | (nil) | 0x1586ef0 }"];
+22572784  [label = "{ Pointer | Data | Left | Right }  | { 0x1586ef0 | { call param | 3 | 0 } | 0x1586ea0 | (nil) }"];
+22572704  [label = "{ Pointer | Data | Left | Right }  | { 0x1586ea0 | { constant | 0 | 100 } | (nil) | (nil) }"];
+22573584  [label = "{ Pointer | Data | Left | Right }  | { 0x1587210 | { bin operation | 4 | 47 } | 0x1586fe0 | 0x1587170 }"];
+22573024  [label = "{ Pointer | Data | Left | Right }  | { 0x1586fe0 | { FFunction | 2 | 0 } | (nil) | 0x1587080 }"];
+22573184  [label = "{ Pointer | Data | Left | Right }  | { 0x1587080 | { call param | 3 | 0 } | 0x1587030 | (nil) }"];
+22573104  [label = "{ Pointer | Data | Left | Right }  | { 0x1587030 | { constant | 0 | 777 } | (nil) | (nil) }"];
+22573424  [label = "{ Pointer | Data | Left | Right }  | { 0x1587170 | { FFunction | 2 | 0 } | (nil) | 0x15871c0 }"];
+22573504  [label = "{ Pointer | Data | Left | Right }  | { 0x15871c0 | { call param | 3 | 0 } | (nil) | (nil) }"];
+22572944 -> 22572256 [color = blue];
+22572944 -> 22573344 [color = green];
+22572256 -> 22572416 [color = green];
+22572416 -> 22572336 [color = blue];
+22573344 -> 22572576 [color = blue];
+22573344 -> 22573584 [color = green];
+22572576 -> 22572784 [color = green];
+22572784 -> 22572704 [color = blue];
+22573584 -> 22573024 [color = blue];
+22573584 -> 22573424 [color = green];
+22573024 -> 22573184 [color = green];
+22573184 -> 22573104 [color = blue];
+22573424 -> 22573504 [color = green];
 }
