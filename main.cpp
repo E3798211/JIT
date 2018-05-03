@@ -47,8 +47,10 @@ int main()
     LoadProgramm("test");
     Tree<Token>* syntax_tree = BuildSyntaxTree();
 
-//    syntax_tree->CreateDotOutput(Dump);
+    syntax_tree->CreateDotOutput(Dump);
     // Tree<Token>::CreateDotOutput(syntax_tree, Dump);
+
+    std::cout << (int)'+' << "\t" << (int)'*' << "\n";
 
 }
 

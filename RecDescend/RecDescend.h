@@ -15,6 +15,14 @@
     #define TOK_DBG if(0)
 #endif // TOK_DBG_
 
+struct Variable
+{
+    /// Variable's name
+    std::string name_;
+
+    /// Value
+    int value_  = 0;
+};
 
 class Token
 {
@@ -131,11 +139,14 @@ int LoadProgramm(std::string filename);
 */
 int ErrorLine();
 
+/// Gets call arguments of the function
+Tree<Token>* GetFunctionCallArguments();
+
 /// Gets call of the function
 Tree<Token>* GetFunctionCall();
 
-/// Gets call arguments of the function
-Tree<Token>* GetFunctionCallArguments();
+/// Gets variable
+Tree<Token>* GetVariableCall();
 
 /// Breaks whole programm into tokens and fills array with them
 /**
@@ -157,5 +168,8 @@ Tree<Token>* GetE();
 
 /// Gets Operator
 Tree<Token>* GetOperator();
+
+/// Prints Token in DOT format
+int Dump(const Token& a, FILE* output);
 
 #endif // RECDESCEND_H_INCLUDED
