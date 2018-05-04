@@ -145,8 +145,11 @@ Tree<Token>* GetFunctionCallArguments();
 /// Gets call of the function
 Tree<Token>* GetFunctionCall();
 
-/// Gets variable
+/// Gets variable call
 Tree<Token>* GetVariableCall();
+
+/// Gets variable declaration
+Tree<Token>* GetVariableDeclaration();
 
 /// Breaks whole programm into tokens and fills array with them
 /**

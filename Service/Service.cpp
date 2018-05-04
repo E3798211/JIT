@@ -81,7 +81,7 @@ bool IsOneOf(const char to_compare, const char* with)
     return false;
 }
 
-std::string GetWordExceptSymbols(char** str, char* symbols)
+std::string GetWordExceptSymbols(char** str, const char* symbols)
 {
     assert(symbols);
 

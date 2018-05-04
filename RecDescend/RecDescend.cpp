@@ -58,6 +58,9 @@ std::string CheckName()
 std::string GetName()
 {
     std::string word;
+
+    while(isspace(*cur_pos))    cur_pos++;
+
     while(  (*cur_pos >= 'a' && *cur_pos <= 'z') ||
             (*cur_pos >= 'A' && *cur_pos <= 'Z') ||
              *cur_pos == '_' )
@@ -249,6 +252,41 @@ Tree<Token>* GetVariableCall()
     return variable;
 }
 
+Tree<Token>* GetVariableDeclaration()
+{
+    // Skipping 'var' key word
+    GetName();
+
+    std::string new_variable_name = GetName();
+
+    if(VariableNum(new_variable_name) >= 0)
+    {
+        std::cout << "Redeclaration of '" << new_variable_name << "' variable\n";
+        parse_error = -ERROR::INVALID_ARG;
+        return nullptr;
+    }
+
+    // Creating such variable
+    variables[cur_variable++] = { new_variable_name, 0 };
+
+    // Creating node
+    tokens[cur_tok] = { new_variable_name, VARIABLE, 0 };
+    Tree<Token>* variable = nullptr;
+    try
+    {
+        variable = new Tree<Token> (tokens[cur_tok]);
+        cur_tok++;
+    }
+    catch(const std::bad_alloc& ex)
+    {
+        std::cout << "Failed to allocate memory for variable '" << new_variable_name << "'\n";
+        parse_error = -ERROR::UNKNOWN;
+        return nullptr;
+    }
+
+    return variable;
+}
+
 Tree<Token>* BuildSyntaxTree()           // <-- TO BE FINISHED
 {
     assert(cur_pos);
@@ -263,7 +301,8 @@ Tree<Token>* BuildSyntaxTree()           // <-- TO BE FINISHED
     while(*cur_pos != '\0')
     {
         // GetFunction
-        Tree<Token>* cur = GetE();
+        // Tree<Token>* cur = GetE();
+        Tree<Token>* cur = GetOperator();
 
         current->FastLeft(cur);
 
@@ -380,11 +419,6 @@ Tree<Token>* GetP()     // ( expr ), ( ), 123, VarName, FuncName
     }
 
     return elem;
-}
-
-int Dump(const Token& a, FILE* output)
-{
-    return fprintf(output, "{ %s | %d | %d }", a.Name().c_str(), a.Type(), a.Value());
 }
 
 Tree<Token>* GetT()     // (expr) * (expr)
@@ -540,12 +574,65 @@ Tree<Token>* GetE()     // GetT + GetT
 
 Tree<Token>* GetOperator()
 {
-    Tree<Token>* elem = GetE();
-    std::cout << "\t\tIn GetOp() before sc check: '" << *cur_pos << "'\n";
+    // So here we go
+    Tree<Token>* top_operator = nullptr;
+
+    SkipSpaces(&cur_pos);
+    std::string command = CheckName();
+
+    /* */if(command == IF)
+    {
+        // condition operator
+    }
+    else if(command == UNTIL)
+    {
+        // loop
+    }
+    else if(command == VAR)
+    {
+        top_operator = GetVariableDeclaration();
+    }
+    else if(command == RETURN)
+    {
+        // return value
+    }
+    else if(command == ASM)
+    {
+        // asm insert
+    }
+    else if(*cur_pos == '{')
+    {
+        // complex operator
+        // GetOperator() again?
+    }
+    else if(VariableNum(command) >= 0)
+    {
+        // assignment
+    }
+    else
+    {
+        // IS IT TRUE ???
+        top_operator = GetE();
+    }
+
+    /*
+    // TAKE SEMICOLON
+    SkipSpaces(&cur_pos);
     if(*cur_pos != ';')
     {
-        std::cout << "Expected cemicolon on line " << ErrorLine() << "\n";
+        std::cout << "Expected ';' on line " << ErrorLine() << "\n";
+        std::cout << "But found '" << *cur_pos << "'\n";
+        parse_error = -ERROR::NOT_FOUND;
+        delete top_operator;
         return nullptr;
     }
-    return elem;
+    */
+
+    return top_operator;
 }
+
+int Dump(const Token& a, FILE* output)
+{
+    return fprintf(output, "{ %s | %d | %d }", a.Name().c_str(), a.Type(), a.Value());
+}
+

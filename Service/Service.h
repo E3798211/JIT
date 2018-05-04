@@ -22,7 +22,7 @@ char* SkipSpaces(char** str);
 bool IsOneOf(const char to_compare, const char* with);
 
 /// Gets word, ended with *symbols
-std::string GetWordExceptSymbols(char** str, char* symbols);
+std::string GetWordExceptSymbols(char** str, const char* symbols);
 
 /// Gets word
 /**
