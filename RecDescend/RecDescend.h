@@ -128,6 +128,9 @@ int FunctionNum(const std::string to_check);
 */
 int VariableNum(const std::string& to_check);
 
+/// Clears array with variables
+int ClearVariablesBuffer();
+
 // =========================================
 
 /// Loads programm
@@ -169,6 +172,9 @@ Tree<Token>* GetReturnOperator();
 /// Gets assignment
 Tree<Token>* GetAssignment();
 
+/// Gets function's arguments list
+int          GetFunctionDeclareArguments();
+
 /// Breaks whole programm into tokens and fills array with them
 /**
     \warning    Expects global 'cur_pos' ititialized
@@ -189,6 +195,12 @@ Tree<Token>* GetE();
 
 /// Gets Operator
 Tree<Token>* GetOperator();
+
+/// Gets Function
+Tree<Token>* GetFunction();
+
+/// Top getter
+Tree<Token>* GetG0();
 
 /// Prints Token in DOT format
 int Dump(const Token& a, FILE* output);

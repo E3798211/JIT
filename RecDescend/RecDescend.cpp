@@ -96,6 +96,15 @@ int VariableNum(const std::string& to_check)
     return -ERROR::NOT_FOUND;
 }
 
+int ClearVariablesBuffer()
+{
+    for(int i = 0; i < cur_variable; i++)
+        variables[i].name_ = "";
+    cur_variable = 0;
+
+    return cur_variable;
+}
+
 // =========================================
 
 int LoadProgramm(std::string filename)
@@ -122,7 +131,7 @@ int ErrorLine()
         tmp++;
     }
 
-    return line_num;
+    return line_num + 1;    // As we count from 1 in IDE
 }
 
 Tree<Token>* GetFunctionCallArguments()     // Arguments grow to the right
@@ -219,7 +228,7 @@ Tree<Token>* GetFunctionCallArguments()     // Arguments grow to the right
 Tree<Token>* GetFunctionCall()
 {
     int func_num    = FunctionNum(GetName());
-    tokens[cur_tok] = { functions[func_num], FUNCTION, func_num };
+    tokens[cur_tok] = { functions[func_num], FUNCTION_TO_USE, func_num };
 
     Tree<Token>* function = nullptr;
     try
@@ -240,9 +249,11 @@ Tree<Token>* GetFunctionCall()
     return function;
 }
 
-Tree<Token>* GetVariableCall()
+Tree<Token>* GetVariableCall()              // <-- LOOK HERE !!!
 {
     int var_num = VariableNum(GetName());
+
+    // PROBABLY var_num INSTEAD OF variables[var_num].value_
 
     tokens[cur_tok] = { variables[var_num].name_, VARIABLE_TO_USE, variables[var_num].value_ };
 
@@ -325,7 +336,7 @@ Tree<Token>* GetFlowControl()               // Condition on the left, code on th
     return top_operator;
 }
 
-Tree<Token>* GetVariableDeclaration()
+Tree<Token>* GetVariableDeclaration()       // <-- LOOK HERE !!!
 {
     // Skipping 'var' key word
     GetName();
@@ -407,7 +418,7 @@ Tree<Token>* GetAsmInsert()
     cur_pos++;
 
     SkipSpaces(&cur_pos);
-    if(*cur_pos != '\>')
+    if(*cur_pos != '>')
     {
         std::cout << "Expected '>' after asm on line " << ErrorLine() << "\n";
         parse_error = -ERROR::NOT_FOUND;
@@ -427,6 +438,7 @@ Tree<Token>* GetAsmInsert()
     catch(const std::bad_alloc& ex)
     {
         std::cout << "Failed to allocate memory for asm insert\n";
+        parse_error = -ERROR::UNKNOWN;
         return nullptr;
     }
 
@@ -630,21 +642,91 @@ Tree<Token>* GetAssignment()
     return top_operator;
 }
 
+int GetFunctionDeclareArguments()
+{
+    SkipSpaces(&cur_pos);
+    if(*cur_pos != '(')
+    {
+        std::cout << "Expected '(' after function declaration on line " << ErrorLine() << "\n";
+        parse_error = -ERROR::NOT_FOUND;
+        return -ERROR::NOT_FOUND;
+    }
+    cur_pos++;
+
+    int  times_in_loop  = 0;
+    bool arguments_left = true;
+    std::string parameter_name;
+    do{
+        SkipSpaces(&cur_pos);
+        /* */if(times_in_loop > 0 && *cur_pos != ',')
+        {
+            std::cout << "Expected ',' on line " << ErrorLine() << " between function arguments\n";
+            parse_error = -ERROR::INVALID_ARG;
+            return -ERROR::INVALID_ARG;
+        }
+        else if(times_in_loop > 0)
+        {
+            cur_pos++;
+        }
+
+        // Taking new name
+        parameter_name = GetName();
+        if(parameter_name.length() == 0)
+        {
+            SkipSpaces(&cur_pos);
+            if(*cur_pos == ')')
+            {
+                // Empty brackets
+                cur_pos++;
+                return times_in_loop;   // Equivalent to 'return 0'
+            }
+            else
+            {
+                std::cout << "Expected argument in function declaration on line " << ErrorLine() << "\n";
+                parameter_name = -ERROR::NOT_FOUND;
+                return -ERROR::NOT_FOUND;
+            }
+        }
+        if(VariableNum(parameter_name) >= 0)
+        {
+            std::cout << "Redeclaration of '" << parameter_name << "' on line " << ErrorLine() << "\n";
+            parameter_name = -ERROR::NOT_FOUND;
+            return -ERROR::NOT_FOUND;
+        }
+
+        variables[cur_variable++] = { parameter_name, 0 };
+
+        SkipSpaces(&cur_pos);
+        if(*cur_pos == ')')
+        {
+            arguments_left = false;
+            cur_pos++;
+        }
+
+        times_in_loop++;
+
+    }while(arguments_left);
+
+    return times_in_loop;
+}
+
 Tree<Token>* BuildSyntaxTree()              // <-- TO BE FINISHED
 {
     assert(cur_pos);
 
-    functions[cur_function++] =   "FFunction";
+    // functions[cur_function++] =   "FFunction";
 
-    tokens[cur_tok] = {"GLOBAL", OPERATOR, 0};
-    Tree<Token>* first = new Tree<Token> (tokens[cur_tok++]);
-    Tree<Token>* current = first;
+    // tokens[cur_tok] = {"GLOBAL", OPERATOR, 0};
+    // Tree<Token>* first = new Tree<Token> (tokens[cur_tok++]);
+    // Tree<Token>* current = first;
 
+    /*
     while(*cur_pos != '\0')
     {
         // GetFunction
         // Tree<Token>* cur = GetE();
-        Tree<Token>* cur = GetOperator();
+        // Tree<Token>* cur = GetOperator();
+        Tree<Token>* cur = GetFunction();
 
         current->FastLeft(cur);
 
@@ -675,9 +757,12 @@ Tree<Token>* BuildSyntaxTree()              // <-- TO BE FINISHED
 
         SkipSpaces(&cur_pos);
     }
+    */
+
+    Tree<Token>* syntax_tree = GetG0();
 
     delete [] programm;
-    return first;
+    return syntax_tree;
 }
 
 Tree<Token>* GetN()
@@ -960,6 +1045,122 @@ Tree<Token>* GetOperator()      // Assignment must be checked!!!
     }
 
     return top_operator;
+}
+
+Tree<Token>* GetFunction()
+{
+    // Shit... So close
+
+    // Getting function's name
+
+    std::string function_name = GetName();
+    if(function_name.length() == 0)
+    {
+        std::cout << "Expected function's name after 'function' on line " << ErrorLine() << "\n";
+        parse_error = -ERROR::NOT_FOUND;
+        return nullptr;
+    }
+    if(FunctionNum(function_name) >= 0)
+    {
+        std::cout << "Redeclaration of '" << function_name << " on line " << ErrorLine() << "\n";
+        parse_error = -ERROR::INVALID_ARG;
+        return nullptr;
+    }
+
+    functions[cur_function++] = function_name;
+
+    // Get arguments list
+
+    GetFunctionDeclareArguments();
+
+    // Get body
+
+    Tree<Token>* function_body = GetOperator();
+    if(parse_error)     return nullptr;
+
+    // Join them
+
+    tokens[cur_tok] = { function_name, FUNCTION_TO_CREATE, 0 };
+    Tree<Token>* function = nullptr;
+    try
+    {
+        function = new Tree<Token> (tokens[cur_tok]);
+        cur_tok++;
+    }
+    catch(const std::bad_alloc& ex)
+    {
+        std::cout << "Failed to allocate memory for function '" << function_name << "'\n";
+        parse_error = -ERROR::UNKNOWN;
+        delete function_body;
+        return nullptr;
+    }
+
+    function->Left (function_body);
+    function->Right(nullptr);
+
+    return function;
+}
+
+Tree<Token>* GetG0()
+{
+    Tree<Token>*         top_global = nullptr;
+    Tree<Token>*      next_function = nullptr;
+    Tree<Token>*     current_global = nullptr;
+    Tree<Token>* tmp_global_handler = nullptr;
+
+    int times_in_loop = 0;
+    while(GetWord(&cur_pos) == FUNCTION)
+    {
+        next_function = GetFunction();
+        if(parse_error < 0)     return nullptr;
+        ClearVariablesBuffer();
+
+        // Creating new node
+
+        tokens[cur_tok] = { GLOBAL_NAME, GLOBAL, 0 };
+        try
+        {
+            tmp_global_handler = new Tree<Token> (tokens[cur_tok]);
+            cur_tok++;
+        }
+        catch(const std::bad_alloc& ex)
+        {
+            std::cout << "Failed to allocate memory for global node\n";
+            delete next_function;
+            return nullptr;
+        }
+
+        //  gathering all together
+
+        if(times_in_loop == 0)
+        {
+            top_global = tmp_global_handler;
+            top_global->Left (next_function);
+            top_global->Right(nullptr);
+
+            current_global = top_global;
+        }
+        else
+        {
+            current_global->Right(tmp_global_handler);
+            current_global = current_global->Right();
+            current_global->Left (next_function);
+            current_global->Right(nullptr);
+        }
+
+        times_in_loop++;
+    }
+
+    SkipSpaces(&cur_pos);
+    if(*cur_pos != '\0')
+    {
+        std::cout << "Weird syntax on line " << ErrorLine() << "\n";
+        parse_error = -ERROR::UNKNOWN;
+        delete top_global;
+        return nullptr;
+    }
+
+    return top_global;
 }
 
 int Dump(const Token& a, FILE* output)
