@@ -11,6 +11,7 @@ enum TOKEN_TYPE
     BIN_OPERATION,
     OPERATOR,
     COMPLEX_OPERATOR,
+    RETURN_OPERATOR
 };
 
 const char CONSTANT_NAME[]          = "constant";

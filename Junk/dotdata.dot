@@ -1,10 +1,22 @@
 digraph G {
 node[shape = record];
-20154496  [label = "{ Pointer | Data | Left | Right }  | { 0x1338880 | { GLOBAL | 6 | 0 } | 0x1338ce0 | 0x1338d30 }"];
-20155616  [label = "{ Pointer | Data | Left | Right }  | { 0x1338ce0 | { NEW_VAR | 1 | 0 } | (nil) | (nil) }"];
-20155696  [label = "{ Pointer | Data | Left | Right }  | { 0x1338d30 | { GLOBAL | 6 | 0 } | (nil) | 0x1338d80 }"];
-20155776  [label = "{ Pointer | Data | Left | Right }  | { 0x1338d80 | { GLOBAL | 6 | 0 } | (nil) | (nil) }"];
-20154496 -> 20155616 [color = blue];
-20154496 -> 20155696 [color = green];
-20155696 -> 20155776 [color = green];
+37447808  [label = "{ Pointer | Data | Left | Right }  | { 0x23b6880 | { GLOBAL | 6 | 0 } | 0x23b6ce0 | 0x23b6d30 }"];
+37448928  [label = "{ Pointer | Data | Left | Right }  | { 0x23b6ce0 | { NEW_VAR | 1 | 0 } | (nil) | (nil) }"];
+37449008  [label = "{ Pointer | Data | Left | Right }  | { 0x23b6d30 | { GLOBAL | 6 | 0 } | 0x23b6f40 | 0x23b6f90 }"];
+37449536  [label = "{ Pointer | Data | Left | Right }  | { 0x23b6f40 | { complex | 7 | 0 } | 0x23b6ef0 | (nil) }"];
+37449456  [label = "{ Pointer | Data | Left | Right }  | { 0x23b6ef0 | { return | 8 | 0 } | 0x23b6ea0 | (nil) }"];
+37449376  [label = "{ Pointer | Data | Left | Right }  | { 0x23b6ea0 | { bin operation | 5 | 43 } | 0x23b6d80 | 0x23b6e20 }"];
+37449088  [label = "{ Pointer | Data | Left | Right }  | { 0x23b6d80 | { FFunction | 3 | 0 } | (nil) | 0x23b6dd0 }"];
+37449168  [label = "{ Pointer | Data | Left | Right }  | { 0x23b6dd0 | { call param | 4 | 0 } | (nil) | (nil) }"];
+37449248  [label = "{ Pointer | Data | Left | Right }  | { 0x23b6e20 | { constant | 0 | 6 } | (nil) | (nil) }"];
+37449616  [label = "{ Pointer | Data | Left | Right }  | { 0x23b6f90 | { GLOBAL | 6 | 0 } | (nil) | (nil) }"];
+37447808 -> 37448928 [color = blue];
+37447808 -> 37449008 [color = green];
+37449008 -> 37449536 [color = blue];
+37449008 -> 37449616 [color = green];
+37449536 -> 37449456 [color = blue];
+37449456 -> 37449376 [color = blue];
+37449376 -> 37449088 [color = blue];
+37449376 -> 37449248 [color = green];
+37449088 -> 37449168 [color = green];
 }

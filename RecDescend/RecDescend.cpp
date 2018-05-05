@@ -365,6 +365,35 @@ Tree<Token>* GetComplexOperator()       // Nodes grow to the right
     return top_operator;
 }
 
+Tree<Token>* GetReturnOperator()
+{
+    // Skipping 'return' key word
+    GetWord(&cur_pos);
+
+    Tree<Token>* to_be_returned = GetE();
+    if(parse_error < 0)     return nullptr;
+
+    // Creating return statement
+    tokens[cur_tok] = { RETURN, RETURN_OPERATOR, 0 };
+    Tree<Token>* return_statement = nullptr;
+    try
+    {
+        return_statement = new Tree<Token> (tokens[cur_tok]);
+        cur_tok++;
+    }
+    catch(const std::bad_alloc& ex)
+    {
+        std::cout << "Failed to allocate memory for return statement\n";
+        delete to_be_returned;
+        return nullptr;
+    }
+
+    return_statement->FastLeft (to_be_returned);
+    return_statement->FastRigth(nullptr);
+
+    return return_statement;
+}
+
 Tree<Token>* GetAssignment()
 {
     if(*cur_pos == '\0')    return nullptr;
@@ -554,16 +583,6 @@ Tree<Token>* GetP()     // ( expr ), ( ), 123, VarName, FuncName
         }
         cur_pos++;
     }
-    /*
-    else if(FunctionNum(CheckName()) >= 0)     // Try word. Maybe Function -> GetFunctionCall()
-    {
-        elem = GetFunctionCall();
-    }
-    else if(VariableNum(CheckName()) >= 0)     // Try word. Maybe Variable -> GetVariable()
-    {
-        elem = GetVariableCall();
-    }
-    */
     else if(IsName(CheckName()))
     {
         if(FunctionNum(CheckName()) >= 0)     // Try word. Maybe Function -> GetFunctionCall()
@@ -771,7 +790,7 @@ Tree<Token>* GetOperator()      // Assignment must be checked!!!
     }
     else if(command == RETURN)
     {
-        // return value
+        top_operator = GetReturnOperator();
     }
     else if(command == ASM)
     {
@@ -779,9 +798,6 @@ Tree<Token>* GetOperator()      // Assignment must be checked!!!
     }
     else if(*cur_pos == '{')
     {
-        // complex operator
-        // GetOperator() again
-        // While '}' not met
         top_operator = GetComplexOperator();
     }
     else
