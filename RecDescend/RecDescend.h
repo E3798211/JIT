@@ -151,6 +151,9 @@ Tree<Token>* GetFunctionCall();
 /// Gets variable call
 Tree<Token>* GetVariableCall();
 
+/// Gets flow control
+Tree<Token>* GetFlowControl();
+
 /// Gets variable declaration
 Tree<Token>* GetVariableDeclaration();
 

@@ -262,6 +262,69 @@ Tree<Token>* GetVariableCall()
     return variable;
 }
 
+Tree<Token>* GetFlowControl()               // Condition on the left, code on the right
+{
+    std::string control_type = GetName();
+
+    // Getting condition
+
+    SkipSpaces(&cur_pos);
+    if(*cur_pos != '(')
+    {
+        std::cout << "Expected '(' after " << control_type << " on line " << ErrorLine() << "\n";
+        parse_error = -ERROR::NOT_FOUND;
+        return nullptr;
+    }
+    cur_pos++;
+
+    Tree<Token>* condition = GetE();
+    if(parse_error < 0)     return nullptr;
+
+    SkipSpaces(&cur_pos);
+    if(*cur_pos != ')')
+    {
+        std::cout << "Expected ')' after " << control_type << " on line " << ErrorLine() << "\n";
+        parse_error = -ERROR::NOT_FOUND;
+        return nullptr;
+    }
+    cur_pos++;
+
+    // Getting code block
+
+    Tree<Token>* code = GetOperator();
+    if(parse_error < 0)
+    {
+        delete condition;
+        return nullptr;
+    }
+
+    // Creating main node
+
+    tokens[cur_tok] = { ((control_type == IF)? IF : UNTIL),
+                        OPERATOR,
+                        ((control_type == IF)? IF_OPERATOR : UNTIL_OPERATOR) };
+
+    Tree<Token>* top_operator = nullptr;
+    try
+    {
+        top_operator = new Tree<Token> (tokens[cur_tok]);
+        cur_tok++;
+    }
+    catch(const std::bad_alloc& ex)
+    {
+        std::cout << "Failed to allocate memoru for " << control_type << " operator\n";
+        parse_error = -ERROR::UNKNOWN;
+        delete condition;
+        delete code;
+        return nullptr;
+    }
+
+    top_operator->Left (condition);
+    top_operator->Right(code);
+
+    return top_operator;
+}
+
 Tree<Token>* GetVariableDeclaration()
 {
     // Skipping 'var' key word
@@ -297,7 +360,7 @@ Tree<Token>* GetVariableDeclaration()
     return variable;
 }
 
-Tree<Token>* GetComplexOperator()       // Nodes grow to the right
+Tree<Token>* GetComplexOperator()           // Nodes grow to the right
 {
     // Skipping '{'
     cur_pos++;
@@ -321,7 +384,7 @@ Tree<Token>* GetComplexOperator()       // Nodes grow to the right
         }
 
         // Init
-        tokens[cur_tok] = { COMPLEX_OPERATOR_NAME, COMPLEX_OPERATOR, 0 };
+        tokens[cur_tok] = { COMPLEX_OPERATOR_NAME, OPERATOR, COMPLEX_OPERATOR };
         try
         {
             complex_operator = new Tree<Token> (tokens[cur_tok]);
@@ -374,7 +437,7 @@ Tree<Token>* GetReturnOperator()
     if(parse_error < 0)     return nullptr;
 
     // Creating return statement
-    tokens[cur_tok] = { RETURN, RETURN_OPERATOR, 0 };
+    tokens[cur_tok] = { RETURN, OPERATOR, RETURN_OPERATOR };
     Tree<Token>* return_statement = nullptr;
     try
     {
@@ -428,7 +491,7 @@ Tree<Token>* GetAssignment()
         }
 
         // Creating assignment node
-        tokens[cur_tok] = { OPERATOR_NAME, OPERATOR, '=' };
+        tokens[cur_tok] = { OPERATOR_NAME, OPERATOR, ASSIGNMENT_OPERATOR };
         try
         {
             assignment_operator = new Tree<Token> (tokens[cur_tok]);
@@ -472,7 +535,7 @@ Tree<Token>* GetAssignment()
     return top_operator;
 }
 
-Tree<Token>* BuildSyntaxTree()           // <-- TO BE FINISHED
+Tree<Token>* BuildSyntaxTree()              // <-- TO BE FINISHED
 {
     assert(cur_pos);
 
@@ -776,13 +839,9 @@ Tree<Token>* GetOperator()      // Assignment must be checked!!!
     SkipSpaces(&cur_pos);
     std::string command = CheckName();
 
-    /* */if(command == IF)
+    /* */if(command == IF || command == UNTIL)
     {
-        // condition operator
-    }
-    else if(command == UNTIL)
-    {
-        // loop
+        top_operator = GetFlowControl();
     }
     else if(command == VAR)
     {
