@@ -32,6 +32,10 @@ char* FileRead(std::string filename) noexcept
     rewind(input);
     fread(file_content, 1, filesize, input);
 
+    // Insurance
+    file_content[filesize - 1] = '\0';
+    // std::cout << filesize << "\n";
+
     fclose(input);
     return file_content;
 }

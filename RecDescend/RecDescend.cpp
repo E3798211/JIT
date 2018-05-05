@@ -72,6 +72,16 @@ std::string GetName()
     return word;
 }
 
+bool IsName(std::string to_check)
+{
+    if( (to_check[0] >= 'a' && to_check[0] <= 'z') ||
+        (to_check[0] >= 'A' && to_check[0] <= 'Z') ||
+         to_check[0] == '_' )
+        return true;
+
+    return false;
+}
+
 int FunctionNum(const std::string to_check)
 {
     for(int i = 0; i < cur_function; i++)
@@ -234,7 +244,7 @@ Tree<Token>* GetVariableCall()
 {
     int var_num = VariableNum(GetName());
 
-    tokens[cur_tok] = { variables[var_num].name_, VARIABLE, variables[var_num].value_ };
+    tokens[cur_tok] = { variables[var_num].name_, VARIABLE_TO_USE, variables[var_num].value_ };
 
     Tree<Token>* variable = nullptr;
     try
@@ -270,7 +280,7 @@ Tree<Token>* GetVariableDeclaration()
     variables[cur_variable++] = { new_variable_name, 0 };
 
     // Creating node
-    tokens[cur_tok] = { new_variable_name, VARIABLE, 0 };
+    tokens[cur_tok] = { new_variable_name, VARIABLE_TO_CREATE, 0 };
     Tree<Token>* variable = nullptr;
     try
     {
@@ -287,12 +297,89 @@ Tree<Token>* GetVariableDeclaration()
     return variable;
 }
 
+Tree<Token>* GetAssignment()
+{
+    if(*cur_pos == '\0')    return nullptr;
+
+    Tree<Token>* top_operator = GetE();
+    if(parse_error < 0)     return nullptr;
+
+    Tree<Token>*    current_operator    = top_operator;
+    Tree<Token>*       next_operator    = nullptr;
+    Tree<Token>* assignment_operator    = nullptr;
+
+    // Probably assignment is empty - nothing to be assigned, then just return expr we got
+    int times_in_loop = 0;
+    SkipSpaces(&cur_pos);
+    while(*cur_pos == '=')
+    {
+        cur_pos++;
+
+        Tree<Token>* next_operator = GetE();
+        if(parse_error < 0)
+        {
+            std::cout << "Failed to get assignment.\n";
+            delete top_operator;
+            return nullptr;
+        }
+        if(next_operator == nullptr)
+        {
+            std::cout << "Expected value after '=' on line " << ErrorLine() << "\n";
+            parse_error = -ERROR::INVALID_ARG;
+            delete top_operator;
+            return nullptr;
+        }
+
+        // Creating assignment node
+        tokens[cur_tok] = { OPERATOR_NAME, OPERATOR, '=' };
+        try
+        {
+            assignment_operator = new Tree<Token> (tokens[cur_tok]);
+            cur_tok++;
+        }
+        catch(const std::bad_alloc& ex)
+        {
+            std::cout << "Failed to allocate memory for assignment operator\n";
+            parse_error = -ERROR::UNKNOWN;
+            delete top_operator;
+            delete next_operator;
+            return nullptr;
+        }
+
+        // Checking if this is first assignment
+        if(times_in_loop == 0)
+        {
+            Tree<Token>* tmp = top_operator;
+
+            top_operator = assignment_operator;
+            top_operator->FastLeft (tmp);
+            top_operator->FastRigth(next_operator);
+            current_operator = top_operator;
+        }
+        else
+        {
+            Tree<Token>* tmp = current_operator->Right();
+
+            current_operator->FastRigth(assignment_operator);
+            current_operator = current_operator->Right();
+            current_operator->FastLeft (tmp);
+            current_operator->FastRigth(next_operator);
+
+            // Do not touch top_operator more
+        }
+
+        SkipSpaces(&cur_pos);
+        times_in_loop++;
+    }
+
+    return top_operator;
+}
+
 Tree<Token>* BuildSyntaxTree()           // <-- TO BE FINISHED
 {
     assert(cur_pos);
 
     functions[cur_function++] =   "FFunction";
-    variables[cur_variable++] = { "VVariable", 37 };
 
     tokens[cur_tok] = {"GLOBAL", OPERATOR, 0};
     Tree<Token>* first = new Tree<Token> (tokens[cur_tok++]);
@@ -329,8 +416,6 @@ Tree<Token>* BuildSyntaxTree()           // <-- TO BE FINISHED
             return nullptr;
         }
 
-        cur_pos++;
-
         // MAYBE CONCATENATE THEM???
     }
 
@@ -343,7 +428,8 @@ Tree<Token>* GetN()
     if(parse_error < 0)     return nullptr;
 
     char* beginning = cur_pos;
-    std::string word = GetWordExceptSymbols(&cur_pos, " \t\n(){};,");
+    SkipSpaces(&cur_pos);
+    std::string word = GetWordExceptSymbols(&cur_pos, " \t\n\v\r\f(){};,");
     int value = 0;
 
     try
@@ -398,6 +484,7 @@ Tree<Token>* GetP()     // ( expr ), ( ), 123, VarName, FuncName
         }
         cur_pos++;
     }
+    /*
     else if(FunctionNum(CheckName()) >= 0)     // Try word. Maybe Function -> GetFunctionCall()
     {
         elem = GetFunctionCall();
@@ -405,6 +492,24 @@ Tree<Token>* GetP()     // ( expr ), ( ), 123, VarName, FuncName
     else if(VariableNum(CheckName()) >= 0)     // Try word. Maybe Variable -> GetVariable()
     {
         elem = GetVariableCall();
+    }
+    */
+    else if(IsName(CheckName()))
+    {
+        if(FunctionNum(CheckName()) >= 0)     // Try word. Maybe Function -> GetFunctionCall()
+        {
+            elem = GetFunctionCall();
+        }
+        else if(VariableNum(CheckName()) >= 0)     // Try word. Maybe Variable -> GetVariable()
+        {
+            elem = GetVariableCall();
+        }
+        else
+        {
+            std::cout << "Unknown variable or function: '" << CheckName() << "' on line " << ErrorLine() << "\n";
+            parse_error = -ERROR::UNKNOWN;
+            return nullptr;
+        }
     }
     else
     {
@@ -572,8 +677,10 @@ Tree<Token>* GetE()     // GetT + GetT
     return first_expression;
 }
 
-Tree<Token>* GetOperator()
+Tree<Token>* GetOperator()      // Assignment must be checked!!!
 {
+    if(*cur_pos == '\0')    return nullptr;
+
     // So here we go
     Tree<Token>* top_operator = nullptr;
 
@@ -603,30 +710,24 @@ Tree<Token>* GetOperator()
     else if(*cur_pos == '{')
     {
         // complex operator
-        // GetOperator() again?
-    }
-    else if(VariableNum(command) >= 0)
-    {
-        // assignment
+        // GetOperator() again
+        // While '}' not met
     }
     else
     {
-        // IS IT TRUE ???
-        top_operator = GetE();
+        top_operator = GetAssignment();
     }
 
-    /*
     // TAKE SEMICOLON
     SkipSpaces(&cur_pos);
-    if(*cur_pos != ';')
+    if(*cur_pos != ';' && parse_error >= 0)
     {
         std::cout << "Expected ';' on line " << ErrorLine() << "\n";
-        std::cout << "But found '" << *cur_pos << "'\n";
         parse_error = -ERROR::NOT_FOUND;
         delete top_operator;
         return nullptr;
     }
-    */
+    cur_pos++;
 
     return top_operator;
 }

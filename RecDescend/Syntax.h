@@ -4,7 +4,8 @@
 enum TOKEN_TYPE
 {
     CONSTANT,
-    VARIABLE,
+    VARIABLE_TO_CREATE,
+    VARIABLE_TO_USE,
     FUNCTION,
     FUNC_CALL_PARAMETER,
     BIN_OPERATION,
@@ -14,6 +15,7 @@ enum TOKEN_TYPE
 const char CONSTANT_NAME[]          = "constant";
 const char FUNC_CALL_PARAM_NAME[]   = "call param";
 const char BIN_OPERATION_NAME[]     = "bin operation";
+const char OPERATOR_NAME[]          = "operator";
 
 
 // Syntax itself, all key words are here

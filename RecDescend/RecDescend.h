@@ -113,6 +113,9 @@ std::string CheckName();
 */
 std::string GetName();
 
+/// Checks if argument looks like variable or function
+bool IsName(std::string to_check);
+
 /// Checks if such function exists
 /**
     \return Number of the function or -ERROR::NOT_FOUND in case of fault
@@ -150,6 +153,9 @@ Tree<Token>* GetVariableCall();
 
 /// Gets variable declaration
 Tree<Token>* GetVariableDeclaration();
+
+/// Gets assignment
+Tree<Token>* GetAssignment();
 
 /// Breaks whole programm into tokens and fills array with them
 /**

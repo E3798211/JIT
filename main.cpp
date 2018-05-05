@@ -50,7 +50,9 @@ int main()
     syntax_tree->CreateDotOutput(Dump);
     // Tree<Token>::CreateDotOutput(syntax_tree, Dump);
 
-    std::cout << (int)'+' << "\t" << (int)'*' << "\n";
+    // std::cout << (int)'+' << "\t" << (int)'*' << "\n";
+
+    // std::cout << "y = " << y << "\tx = " << x << "\n";
 
 }
 
