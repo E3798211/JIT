@@ -154,6 +154,9 @@ Tree<Token>* GetVariableCall();
 /// Gets variable declaration
 Tree<Token>* GetVariableDeclaration();
 
+/// Gets complex operator
+Tree<Token>* GetComplexOperator();
+
 /// Gets assignment
 Tree<Token>* GetAssignment();
 

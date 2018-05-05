@@ -9,13 +9,15 @@ enum TOKEN_TYPE
     FUNCTION,
     FUNC_CALL_PARAMETER,
     BIN_OPERATION,
-    OPERATOR
+    OPERATOR,
+    COMPLEX_OPERATOR,
 };
 
 const char CONSTANT_NAME[]          = "constant";
 const char FUNC_CALL_PARAM_NAME[]   = "call param";
 const char BIN_OPERATION_NAME[]     = "bin operation";
 const char OPERATOR_NAME[]          = "operator";
+const char COMPLEX_OPERATOR_NAME[]  = "complex";
 
 
 // Syntax itself, all key words are here

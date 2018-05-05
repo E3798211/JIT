@@ -297,6 +297,74 @@ Tree<Token>* GetVariableDeclaration()
     return variable;
 }
 
+Tree<Token>* GetComplexOperator()       // Nodes grow to the right
+{
+    // Skipping '{'
+    cur_pos++;
+
+    if(*cur_pos == '\0')    return nullptr;
+
+    Tree<Token>*     top_operator   = nullptr;
+    Tree<Token>* current_operator   = top_operator;
+    Tree<Token>*    next_operator   = nullptr;
+    Tree<Token>* complex_operator   = nullptr;
+
+    int times_in_loop = 0;
+    SkipSpaces(&cur_pos);
+    while(*cur_pos != '}')
+    {
+        next_operator = GetOperator();
+        if(parse_error < 0)
+        {
+            delete top_operator;
+            return nullptr;
+        }
+
+        // Init
+        tokens[cur_tok] = { COMPLEX_OPERATOR_NAME, COMPLEX_OPERATOR, 0 };
+        try
+        {
+            complex_operator = new Tree<Token> (tokens[cur_tok]);
+            cur_tok++;
+        }
+        catch(const std::bad_alloc& ex)
+        {
+            std::cout << "Failed to allocate memory for complex operator\n";
+            parse_error = -ERROR::UNKNOWN;
+            delete top_operator;
+            delete next_operator;
+            return nullptr;
+        }
+
+        // Joining nodes
+        if(times_in_loop == 0)
+        {
+            top_operator = complex_operator;
+            top_operator->FastLeft (next_operator);
+            top_operator->FastRigth(nullptr);
+
+            current_operator = top_operator;
+
+            // Do not touch top_operator any more
+        }
+        else
+        {
+            current_operator->FastRigth(complex_operator);
+            current_operator = current_operator->Right();
+            current_operator->FastLeft (next_operator);
+            current_operator->FastRigth(nullptr);
+        }
+
+        times_in_loop++;
+        SkipSpaces(&cur_pos);
+    }
+
+    // Skipping '}'
+    cur_pos++;
+
+    return top_operator;
+}
+
 Tree<Token>* GetAssignment()
 {
     if(*cur_pos == '\0')    return nullptr;
@@ -417,6 +485,8 @@ Tree<Token>* BuildSyntaxTree()           // <-- TO BE FINISHED
         }
 
         // MAYBE CONCATENATE THEM???
+
+        SkipSpaces(&cur_pos);
     }
 
     delete [] programm;
@@ -712,12 +782,14 @@ Tree<Token>* GetOperator()      // Assignment must be checked!!!
         // complex operator
         // GetOperator() again
         // While '}' not met
+        top_operator = GetComplexOperator();
     }
     else
     {
         top_operator = GetAssignment();
     }
 
+    /*
     // TAKE SEMICOLON
     SkipSpaces(&cur_pos);
     if(*cur_pos != ';' && parse_error >= 0)
@@ -728,6 +800,7 @@ Tree<Token>* GetOperator()      // Assignment must be checked!!!
         return nullptr;
     }
     cur_pos++;
+    */
 
     return top_operator;
 }
