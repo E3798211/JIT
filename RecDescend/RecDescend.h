@@ -157,6 +157,9 @@ Tree<Token>* GetFlowControl();
 /// Gets variable declaration
 Tree<Token>* GetVariableDeclaration();
 
+/// Gets asm insert
+Tree<Token>* GetAsmInsert();
+
 /// Gets complex operator
 Tree<Token>* GetComplexOperator();
 

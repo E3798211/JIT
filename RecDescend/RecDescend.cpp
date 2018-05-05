@@ -339,6 +339,16 @@ Tree<Token>* GetVariableDeclaration()
         return nullptr;
     }
 
+    // Checking if semicolon presents
+    SkipSpaces(&cur_pos);
+    if(*cur_pos != ';')
+    {
+        std::cout << "Expected ';' on line " << ErrorLine() << " after variable declaration\n";
+        parse_error = -ERROR::NOT_FOUND;
+        return nullptr;
+    }
+    cur_pos++;
+
     // Creating such variable
     variables[cur_variable++] = { new_variable_name, 0 };
 
@@ -358,6 +368,69 @@ Tree<Token>* GetVariableDeclaration()
     }
 
     return variable;
+}
+
+Tree<Token>* GetAsmInsert()
+{
+    // Skip 'asm' key word
+    GetWord(&cur_pos);
+
+    SkipSpaces(&cur_pos);
+    if(*cur_pos != '<')
+    {
+        std::cout << "Expected '<' after 'asm' on line " << ErrorLine() << "\n";
+        parse_error = -ERROR::NOT_FOUND;
+        return nullptr;
+    }
+    cur_pos++;
+
+    SkipSpaces(&cur_pos);
+    if(*cur_pos != '\"')
+    {
+        std::cout << "Expected '\"' after '<' on line " << ErrorLine() << "\n";
+        parse_error = -ERROR::NOT_FOUND;
+        return nullptr;
+    }
+    cur_pos++;
+
+    // Reading asm insert
+
+    std::string asm_insert = GetWordExceptSymbols(&cur_pos, "\")");
+
+    SkipSpaces(&cur_pos);
+    if(*cur_pos != '\"')
+    {
+        std::cout << "Expected '\"' in asm argument on line " << ErrorLine() << "\n";
+        parse_error = -ERROR::NOT_FOUND;
+        return nullptr;
+    }
+    cur_pos++;
+
+    SkipSpaces(&cur_pos);
+    if(*cur_pos != '\>')
+    {
+        std::cout << "Expected '>' after asm on line " << ErrorLine() << "\n";
+        parse_error = -ERROR::NOT_FOUND;
+        return nullptr;
+    }
+    cur_pos++;
+
+    // Creating node
+
+    tokens[cur_tok] = { asm_insert, ASM_INSERT, 0 };
+    Tree<Token>* asm_node = nullptr;
+    try
+    {
+        asm_node = new Tree<Token> (tokens[cur_tok]);
+        cur_tok++;
+    }
+    catch(const std::bad_alloc& ex)
+    {
+        std::cout << "Failed to allocate memory for asm insert\n";
+        return nullptr;
+    }
+
+    return asm_node;
 }
 
 Tree<Token>* GetComplexOperator()           // Nodes grow to the right
@@ -435,6 +508,17 @@ Tree<Token>* GetReturnOperator()
 
     Tree<Token>* to_be_returned = GetE();
     if(parse_error < 0)     return nullptr;
+
+    // Check if semicolon is on its place
+    SkipSpaces(&cur_pos);
+    if(*cur_pos != ';')
+    {
+        std::cout << "Expected ';' on line " << ErrorLine() << " after return statement\n";
+        parse_error = -ERROR::NOT_FOUND;
+        delete to_be_returned;
+        return nullptr;
+    }
+    cur_pos++;
 
     // Creating return statement
     tokens[cur_tok] = { RETURN, OPERATOR, RETURN_OPERATOR };
@@ -531,6 +615,17 @@ Tree<Token>* GetAssignment()
         SkipSpaces(&cur_pos);
         times_in_loop++;
     }
+
+    // Checking if semicolon presents
+    SkipSpaces(&cur_pos);
+    if(*cur_pos != ';')
+    {
+        std::cout << "Expected ';' on line " << ErrorLine() << " after expression\n";
+        parse_error = -ERROR::NOT_FOUND;
+        delete top_operator;
+        return nullptr;
+    }
+    cur_pos++;
 
     return top_operator;
 }
@@ -853,7 +948,7 @@ Tree<Token>* GetOperator()      // Assignment must be checked!!!
     }
     else if(command == ASM)
     {
-        // asm insert
+        top_operator = GetAsmInsert();
     }
     else if(*cur_pos == '{')
     {
@@ -863,19 +958,6 @@ Tree<Token>* GetOperator()      // Assignment must be checked!!!
     {
         top_operator = GetAssignment();
     }
-
-    /*
-    // TAKE SEMICOLON
-    SkipSpaces(&cur_pos);
-    if(*cur_pos != ';' && parse_error >= 0)
-    {
-        std::cout << "Expected ';' on line " << ErrorLine() << "\n";
-        parse_error = -ERROR::NOT_FOUND;
-        delete top_operator;
-        return nullptr;
-    }
-    cur_pos++;
-    */
 
     return top_operator;
 }
