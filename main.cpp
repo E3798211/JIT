@@ -49,6 +49,8 @@ int main()
     Tree<Token>* syntax_tree = BuildSyntaxTree();
 
     syntax_tree->CreateDotOutput(Dump);
+
+    delete syntax_tree;
     // Tree<Token>::CreateDotOutput(syntax_tree, Dump);
 }
 

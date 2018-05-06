@@ -249,13 +249,11 @@ Tree<Token>* GetFunctionCall()
     return function;
 }
 
-Tree<Token>* GetVariableCall()              // <-- LOOK HERE !!!
+Tree<Token>* GetVariableCall()
 {
     int var_num = VariableNum(GetName());
 
-    // PROBABLY var_num INSTEAD OF variables[var_num].value_
-
-    tokens[cur_tok] = { variables[var_num].name_, VARIABLE_TO_USE, variables[var_num].value_ };
+    tokens[cur_tok] = { variables[var_num].name_, VARIABLE_TO_USE, var_num };
 
     Tree<Token>* variable = nullptr;
     try
@@ -336,13 +334,12 @@ Tree<Token>* GetFlowControl()               // Condition on the left, code on th
     return top_operator;
 }
 
-Tree<Token>* GetVariableDeclaration()       // <-- LOOK HERE !!!
+Tree<Token>* GetVariableDeclaration()
 {
     // Skipping 'var' key word
     GetName();
 
     std::string new_variable_name = GetName();
-
     if(VariableNum(new_variable_name) >= 0)
     {
         std::cout << "Redeclaration of '" << new_variable_name << "' variable\n";
@@ -364,7 +361,11 @@ Tree<Token>* GetVariableDeclaration()       // <-- LOOK HERE !!!
     variables[cur_variable++] = { new_variable_name, 0 };
 
     // Creating node
-    tokens[cur_tok] = { new_variable_name, VARIABLE_TO_CREATE, 0 };
+
+    // tokens[cur_tok] = { new_variable_name, VARIABLE_TO_CREATE, 0 };
+    tokens[cur_tok] = { new_variable_name, VARIABLE_TO_CREATE, cur_variable - 1 };
+
+
     Tree<Token>* variable = nullptr;
     try
     {
@@ -710,54 +711,9 @@ int GetFunctionDeclareArguments()
     return times_in_loop;
 }
 
-Tree<Token>* BuildSyntaxTree()              // <-- TO BE FINISHED
+Tree<Token>* BuildSyntaxTree()
 {
     assert(cur_pos);
-
-    // functions[cur_function++] =   "FFunction";
-
-    // tokens[cur_tok] = {"GLOBAL", OPERATOR, 0};
-    // Tree<Token>* first = new Tree<Token> (tokens[cur_tok++]);
-    // Tree<Token>* current = first;
-
-    /*
-    while(*cur_pos != '\0')
-    {
-        // GetFunction
-        // Tree<Token>* cur = GetE();
-        // Tree<Token>* cur = GetOperator();
-        Tree<Token>* cur = GetFunction();
-
-        current->FastLeft(cur);
-
-        tokens[cur_tok] = { "GLOBAL", OPERATOR, 0 };
-        current->Right(new Tree<Token> (tokens[cur_tok++]));
-        current = current->Right();
-
-        // If error occured
-        if(parse_error < 0)
-        {
-            std::cout << "Error occured on line " << ErrorLine() << "\n";
-            delete first;
-            delete [] programm;
-            return nullptr;
-        }
-
-        // If buffer overflown
-        if(cur_tok >= MAX_TOKENS)
-        {
-            std::cout << "Too many tokens created. Please create smaller programm :)\n";
-            // delete cur;
-            delete first;
-            delete [] programm;
-            return nullptr;
-        }
-
-        // MAYBE CONCATENATE THEM???
-
-        SkipSpaces(&cur_pos);
-    }
-    */
 
     Tree<Token>* syntax_tree = GetG0();
 
@@ -802,7 +758,7 @@ Tree<Token>* GetN()
     return tree;
 }
 
-Tree<Token>* GetP()     // ( expr ), ( ), 123, VarName, FuncName
+Tree<Token>* GetP()                         // ( expr ), ( ), 123, VarName, FuncName
 {
     if(parse_error < 0)     return nullptr;
 
@@ -858,7 +814,7 @@ Tree<Token>* GetP()     // ( expr ), ( ), 123, VarName, FuncName
     return elem;
 }
 
-Tree<Token>* GetT()     // (expr) * (expr)
+Tree<Token>* GetT()                         // (expr) * (expr)
 {
     if(*cur_pos == '\0')    return nullptr;
 
@@ -933,7 +889,7 @@ Tree<Token>* GetT()     // (expr) * (expr)
     return first_expression;
 }
 
-Tree<Token>* GetE()     // GetT + GetT
+Tree<Token>* GetE()                         // GetT + GetT
 {
     if(*cur_pos == '\0')    return nullptr;
 
@@ -1009,7 +965,7 @@ Tree<Token>* GetE()     // GetT + GetT
     return first_expression;
 }
 
-Tree<Token>* GetOperator()      // Assignment must be checked!!!
+Tree<Token>* GetOperator()                  // Assignment must be checked when creating asm file !!!
 {
     if(*cur_pos == '\0')    return nullptr;
 
@@ -1146,6 +1102,12 @@ Tree<Token>* GetG0()
             current_global = current_global->Right();
             current_global->Left (next_function);
             current_global->Right(nullptr);
+        }
+
+        if(parse_error < 0)
+        {
+            delete top_global;
+            return nullptr;
         }
 
         times_in_loop++;
