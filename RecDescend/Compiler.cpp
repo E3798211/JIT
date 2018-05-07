@@ -72,12 +72,12 @@ int PrintIf(Tree<Token>* root, FILE* output)
 
     fprintf(output, "mov  bx , 0  \n");
     fprintf(output, "cmp  ax , bx \n");
-    fprintf(output, "je   $endif_%d\n", label_num);
+    fprintf(output, "je   $endif_%d\n",         label_num);
 
     // Printing Code
     PrintOperator(root->Right(), output);
 
-    fprintf(output, "%%endif_%d   \n", label_num);
+    fprintf(output, "%%endif_%d   \n",          label_num);
     fprintf(output, "#IF ENDED    \n");
 
     return ERROR::OK;
@@ -91,24 +91,24 @@ int PrintUntil(Tree<Token>* root, FILE* output)
     int label_num = different_label_names++;
     fprintf(output, "#UNTIL START\n");
 
-    // Starting loop
-    fprintf(output, "%%startuntil_%d\n",        label_num);
-
     // Skipping over code
     fprintf(output, "jmp $conditionuntil_%d\n", label_num);
+
+    // Starting loop
+    fprintf(output, "%%startuntil_%d\n",        label_num);
 
     // Printing Code
     PrintOperator(root->Right(), output);
 
     // Printing Condition
-    fprintf(output, "%%conditionuntil_%d\n",  label_num);
+    fprintf(output, "%%conditionuntil_%d\n",    label_num);
 
     PrintExpression(root->Left(), output);
 
     // Checking Condition
     fprintf(output, "mov  bx , 0 \n");
     fprintf(output, "cmp  ax , bx\n");
-    fprintf(output, "jne  $startuntil_%d\n",      label_num);
+    fprintf(output, "jne  $startuntil_%d\n",    label_num);
 
     fprintf(output, "#UNTIL ENDED   \n");
 
@@ -120,7 +120,8 @@ int PrintVariableToCreate(Tree<Token>* root, FILE* output)
     assert(root);
     assert(output);
 
-    fprintf(output, "sub  sp , 1\n");
+    fprintf(output, "mov  cx , 1\n");
+    fprintf(output, "sub  sp , cx\n");
 
     return ERROR::OK;
 }
@@ -132,6 +133,10 @@ int PrintReturn(Tree<Token>* root, FILE* output)
 
     // Just printing return statement
     PrintExpression(root->Left(), output);
+    // Duplicating return statement
+    fprintf(output, "mov  sp , bp\n");
+    fprintf(output, "pop  bp\n");
+    fprintf(output, "ret\n");
 
     return ERROR::OK;
 }
@@ -148,7 +153,7 @@ int PrintAsmInsert(Tree<Token>* root, FILE* output)
     return ERROR::OK;
 }
 
-int PrintAssignment(Tree<Token>* root, FILE* output)    // returns value in ax ...
+int PrintAssignment(Tree<Token>* root, FILE* output)    // returns value in ax ...  // ???
 {
     assert(root);
     assert(output);
@@ -169,15 +174,13 @@ int PrintAssignment(Tree<Token>* root, FILE* output)    // returns value in ax .
     // Check if it is parameter or not
     if(variable_offset < 0)
     {
-        fprintf(output, "mov  cx , %d\n", -variable_offset);
+        fprintf(output, "mov  cx , %d\n", -variable_offset + 1);
         fprintf(output, "mov  bx , bp\n");
-        fprintf(output, "add  bx , cx\n");
-        fprintf(output, "mov  cx , 2 \n");
         fprintf(output, "add  bx , cx\n");
     }
     else
     {
-        fprintf(output, "mov  cx , %d\n", variable_offset);
+        fprintf(output, "mov  cx , %d\n",  variable_offset + 1);
         fprintf(output, "mov  bx , bp\n");
         fprintf(output, "sub  bx , cx\n");
     }
@@ -201,32 +204,32 @@ int PrintOperator(Tree<Token>* root, FILE* output)
         {
             case IF_OPERATOR:
             {
-                PrintIf(root, output);
+                PrintIf                 (root, output);
                 break;
             }
             case UNTIL_OPERATOR:
             {
-                PrintUntil(root, output);
+                PrintUntil              (root, output);
                 break;
             }
             case VARIABLE_TO_CREATE:
             {
-                PrintVariableToCreate(root, output);
+                PrintVariableToCreate   (root, output);
                 break;
             }
             case RETURN_OPERATOR:
             {
-                PrintReturn(root, output);
+                PrintReturn             (root, output);
                 break;
             }
             case ASM_INSERT:
             {
-                PrintAsmInsert(root, output);
+                PrintAsmInsert          (root, output);
                 break;
             }
             case COMPLEX_OPERATOR:
             {
-                PrintComplex(root, output);
+                PrintComplex            (root, output);
                 break;
             }
             case ASSIGNMENT_OPERATOR:
@@ -238,13 +241,13 @@ int PrintOperator(Tree<Token>* root, FILE* output)
     }
     else    // Just expression
     {
-        PrintExpression(root, output);
+        PrintExpression                 (root, output);
     }
 
     return status;
 }
 
-int PrintVariable(Tree<Token>* root, FILE* output)
+int PrintVariable(Tree<Token>* root, FILE* output)      // ???
 {
     assert(root);
     assert(output);
@@ -253,15 +256,13 @@ int PrintVariable(Tree<Token>* root, FILE* output)
     // Check if variable is argument or inner variable
     if(variable_offset < 0)
     {
-        fprintf(output, "mov  ax , %d\n", -variable_offset);
+        fprintf(output, "mov  ax , %d\n", -variable_offset + 1);
         fprintf(output, "mov  bx , bp\n");
-        fprintf(output, "add  bx , ax\n");
-        fprintf(output, "mov  ax , 2 \n");
         fprintf(output, "add  bx , ax\n");
     }
     else
     {
-        fprintf(output, "mov  ax , %d\n", variable_offset);
+        fprintf(output, "mov  ax , %d\n",  variable_offset + 1);
         fprintf(output, "mov  bx , bp\n");
         fprintf(output, "sub  bx , ax\n");
     }
@@ -322,22 +323,22 @@ int PrintExpression(Tree<Token>* root, FILE* output)
     {
         case BIN_OPERATION:
         {
-            PrintBinOperator(root, output);
+            PrintBinOperator    (root, output);
             break;
         }
         case VARIABLE_TO_USE:
         {
-            PrintVariable(root, output);
+            PrintVariable       (root, output);
             break;
         }
         case FUNCTION_TO_USE:
         {
-            PrintFunctionCall(root, output);
+            PrintFunctionCall   (root, output);
             break;
         }
         case CONSTANT:
         {
-            PrintConstant(root, output);
+            PrintConstant       (root, output);
             break;
         }
         default:
@@ -418,7 +419,7 @@ int PrintBinOperator(Tree<Token>* root, FILE* output)
         case '~':
         {
             fprintf(output, "cmp  ax , bx\n");
-            fprintf(output, "jb   $equal_%d\n",   label_num);
+            fprintf(output, "je   $equal_%d\n",   label_num);
             fprintf(output, "mov  ax , 0 \n");
             fprintf(output, "jmp  $cmp_end_%d\n", label_num);
 
@@ -431,12 +432,12 @@ int PrintBinOperator(Tree<Token>* root, FILE* output)
         // GetT()
         case '*':
         {
-            fprintf(output, "mul  ax , bx\n");
+            fprintf(output, "mul  bx\n");
             break;
         }
         case '/':
         {
-            fprintf(output, "div  ax , bx\n");
+            fprintf(output, "div  bx\n");
             break;
         }
     }

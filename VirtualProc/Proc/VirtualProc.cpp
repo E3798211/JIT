@@ -47,7 +47,7 @@ int VirtualProc::Exec()
         {
             int dst_reg_num = program_[registers_[IP] + 1];
             int src_reg_num = program_[registers_[IP] + 2];
-            registers_[dst_reg_num] = ram_[src_reg_num];
+            registers_[dst_reg_num] = ram_[registers_[src_reg_num]];
 
             registers_[IP] += 2;
             break;
@@ -65,7 +65,7 @@ int VirtualProc::Exec()
         {
             int dst_reg_num = program_[registers_[IP] + 1];
             int src_reg_num = program_[registers_[IP] + 2];
-            ram_[dst_reg_num] = registers_[src_reg_num];
+            ram_[registers_[dst_reg_num]] = registers_[src_reg_num];
 
             registers_[IP] += 2;
             break;
@@ -192,7 +192,7 @@ int VirtualProc::Exec()
             ram_[registers_[SP]] = return_place;
 
 
-            registers_[IP] -= 1;    // As it will be incremented in the end of function
+            registers_[IP]  -= 1;   // As it will be incremented in the end of function
             break;
         }
         case RET:
@@ -202,7 +202,7 @@ int VirtualProc::Exec()
             registers_[SP]  += 1;
             registers_[IP]   = return_place;
 
-            registers_[IP] -= 1;    // As it will be incremented in the end of function
+            registers_[IP]  -= 1;   // As it will be incremented in the end of function
             break;
         }
         case NOP:
@@ -215,7 +215,7 @@ int VirtualProc::Exec()
             std::cout << " << ";
             std::cin >> in_value;
 
-            registers_[SP] -= 1;
+            registers_[SP]  -= 1;
             // ram_[STACK_BEGIN + registers_[SP]] = in_value;
             ram_[registers_[SP]] = in_value;
 
@@ -227,9 +227,9 @@ int VirtualProc::Exec()
                 std::cout << " >> 0\n";
             else
             {
-                std::cout << " >> " << ram_[STACK_BEGIN - registers_[SP]] << "\n";
+                // std::cout << " >> " << ram_[STACK_BEGIN - registers_[SP]] << "\n";
+                std::cout << " >> " << ram_[registers_[SP]] << "\n";
                 // std::cout << " >> " << ram_[STACK_BEGIN + registers_[SP]] << "\n";
-                std::cout << " >> " << registers_[SP] << "\n";
             }
             break;
         }
@@ -247,11 +247,13 @@ int VirtualProc::ShowInfo()
     {
         std::cout << "reg " << i << "\t= " << registers_[i] << "\n";
     }
+    /*
     std::cout << "Ram:\n";
     for(int i = 0; i < 10; i++)
     {
         std::cout << "ram [" << i << "]\t= " << ram_[i] << "\n";
     }
+    */
     std::cout << "Stack:\n";
     for(int i = STACK_BEGIN; i > STACK_BEGIN - 10; i--)
     {

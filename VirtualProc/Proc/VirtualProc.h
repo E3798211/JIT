@@ -61,7 +61,7 @@ public:
         for(int i = 0; i < N_REGS; i++)
             registers_[i] = 0;
         // registers_[SP] = 1;         // Stack pointer points over the stack
-        registers_[SP] = STACK_BEGIN;         // Stack pointer points over the stack
+        registers_[SP] = STACK_BEGIN + 1;         // Stack pointer points over the stack
 
         program_[MAX_PROGRAM_SIZE - 1] = END;      // <-- to stop execution finally
     }
@@ -85,9 +85,9 @@ public:
                 break;
             }
 
-            ShowInfo();
+            // ShowInfo();
             PROC_DBG std::cout << "ip = " << registers_[IP] << "\n";
-            getchar();
+            // getchar();
         }
         return status;
     }
