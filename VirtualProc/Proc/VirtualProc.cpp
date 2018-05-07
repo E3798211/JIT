@@ -74,8 +74,9 @@ int VirtualProc::Exec()
         case PUSH:
         {
             int src_reg_num = program_[registers_[IP] + 1];
-            registers_[SP] += 1;
-            ram_[STACK_BEGIN - registers_[SP]] = registers_[src_reg_num];
+            registers_[SP] -= 1;
+            // ram_[STACK_BEGIN + registers_[SP]] = registers_[src_reg_num];
+            ram_[registers_[SP]] = registers_[src_reg_num];
 
             registers_[IP] += 1;
             break;
@@ -89,9 +90,10 @@ int VirtualProc::Exec()
             }
 
             int dst_reg_num = program_[registers_[IP] + 1];
-            registers_[dst_reg_num] = ram_[STACK_BEGIN - registers_[SP]];
+            // registers_[dst_reg_num] = ram_[STACK_BEGIN + registers_[SP]];
+            registers_[dst_reg_num] = ram_[registers_[SP]];
 
-            registers_[SP] -= 1;
+            registers_[SP] += 1;
             registers_[IP] += 1;
             break;
         }
@@ -166,7 +168,7 @@ int VirtualProc::Exec()
         }
         case JBE:
         {
-            JumpCode([] (int a){ return a <=  EQUAL; });
+            JumpCode([] (int a){ return a <= EQUAL; });
             break;
         }
         case CMP:
@@ -185,8 +187,9 @@ int VirtualProc::Exec()
             int  return_place = registers_[IP] + 2;
 
             registers_[IP]  = landing_place;
-            registers_[SP]  += 1;
-            ram_[STACK_BEGIN - registers_[SP]] = return_place;
+            registers_[SP]  -= 1;
+            // ram_[STACK_BEGIN + registers_[SP]] = return_place;
+            ram_[registers_[SP]] = return_place;
 
 
             registers_[IP] -= 1;    // As it will be incremented in the end of function
@@ -194,8 +197,9 @@ int VirtualProc::Exec()
         }
         case RET:
         {
-            int return_place = ram_[STACK_BEGIN - registers_[SP]];
-            registers_[SP]  -= 1;
+            // int return_place = ram_[STACK_BEGIN + registers_[SP]];
+            int return_place = ram_[registers_[SP]];
+            registers_[SP]  += 1;
             registers_[IP]   = return_place;
 
             registers_[IP] -= 1;    // As it will be incremented in the end of function
@@ -211,8 +215,9 @@ int VirtualProc::Exec()
             std::cout << " << ";
             std::cin >> in_value;
 
-            registers_[SP] += 1;
-            ram_[STACK_BEGIN - registers_[SP]] = in_value;
+            registers_[SP] -= 1;
+            // ram_[STACK_BEGIN + registers_[SP]] = in_value;
+            ram_[registers_[SP]] = in_value;
 
             break;
         }
@@ -221,7 +226,11 @@ int VirtualProc::Exec()
             if(registers_[SP] < 0)
                 std::cout << " >> 0\n";
             else
+            {
                 std::cout << " >> " << ram_[STACK_BEGIN - registers_[SP]] << "\n";
+                // std::cout << " >> " << ram_[STACK_BEGIN + registers_[SP]] << "\n";
+                std::cout << " >> " << registers_[SP] << "\n";
+            }
             break;
         }
     }

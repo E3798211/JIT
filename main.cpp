@@ -2,27 +2,10 @@
 
 #include "VirtualProc/Proc/VirtualProc.h"
 #include "VirtualProc/Asm/VirtualAsm.h"
-// #include "Tree/Tree.h"
-#include "RecDescend/RecDescend.h"
+// #include "RecDescend/RecDescend.h"
+#include "RecDescend/Compiler.h"
 
 #include <cstring>
-/*
- *
- *  You can insert data with "{ a | b | c }"
- *
- */
-
-int Printer(const int& a, FILE* output)
-{
-    return fprintf(output, "{ 5 | 7 | 9 }");
-}
-
-/*
-int Dump(const Token& a, FILE* output)
-{
-    return fprintf(output, "{ %s | %d | %d }", a.Name().c_str(), a.Type(), a.Value());
-}
-*/
 
 int main()
 {
@@ -44,13 +27,19 @@ int main()
     delete b1;
 */
 
-    LoadProgramm("test");
+    // LoadProgramm("test");
 
-    Tree<Token>* syntax_tree = BuildSyntaxTree();
+    // Tree<Token>* syntax_tree = BuildSyntaxTree();
 
-    syntax_tree->CreateDotOutput(Dump);
+    // syntax_tree->CreateDotOutput(Dump);
 
-    delete syntax_tree;
+    // delete syntax_tree;
     // Tree<Token>::CreateDotOutput(syntax_tree, Dump);
+
+    Compile         ("test");
+    Assembler       (COMPILED_CODE_FILENAME);
+    VirtualProc a   ("AsmOut");
+    a.Run();
+
 }
 

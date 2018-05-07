@@ -33,8 +33,11 @@ const int MAX_VARIABLES     = 10000;
 /// Global array with variables
 Variable variables[MAX_VARIABLES]    = {};
 
-/// Amount of functions already added (current function)
+/// Amount of variables already added (current variable)
 int cur_variable            = 0;
+
+/// Amount of arguments in current function
+int n_arguments             = 0;
 
 // =========================================
 // Additional functions supposed to be used only as inner functions
@@ -101,6 +104,7 @@ int ClearVariablesBuffer()
     for(int i = 0; i < cur_variable; i++)
         variables[i].name_ = "";
     cur_variable = 0;
+    n_arguments  = 0;
 
     return cur_variable;
 }
@@ -249,11 +253,11 @@ Tree<Token>* GetFunctionCall()
     return function;
 }
 
-Tree<Token>* GetVariableCall()
+Tree<Token>* GetVariableCall()              // <-- HERE !
 {
     int var_num = VariableNum(GetName());
 
-    tokens[cur_tok] = { variables[var_num].name_, VARIABLE_TO_USE, var_num };
+    tokens[cur_tok] = { variables[var_num].name_, VARIABLE_TO_USE, var_num - n_arguments };
 
     Tree<Token>* variable = nullptr;
     try
@@ -334,7 +338,7 @@ Tree<Token>* GetFlowControl()               // Condition on the left, code on th
     return top_operator;
 }
 
-Tree<Token>* GetVariableDeclaration()
+Tree<Token>* GetVariableDeclaration()       // <-- HERE !
 {
     // Skipping 'var' key word
     GetName();
@@ -363,7 +367,8 @@ Tree<Token>* GetVariableDeclaration()
     // Creating node
 
     // tokens[cur_tok] = { new_variable_name, VARIABLE_TO_CREATE, 0 };
-    tokens[cur_tok] = { new_variable_name, VARIABLE_TO_CREATE, cur_variable - 1 };
+    // tokens[cur_tok] = { new_variable_name, VARIABLE_TO_CREATE, cur_variable - n_arguments - 1 };
+    tokens[cur_tok] = { new_variable_name, OPERATOR, VARIABLE_TO_CREATE };
 
 
     Tree<Token>* variable = nullptr;
@@ -429,7 +434,8 @@ Tree<Token>* GetAsmInsert()
 
     // Creating node
 
-    tokens[cur_tok] = { asm_insert, ASM_INSERT, 0 };
+    // tokens[cur_tok] = { asm_insert, ASM_INSERT, 0 };
+    tokens[cur_tok] = { asm_insert, OPERATOR, ASM_INSERT };
     Tree<Token>* asm_node = nullptr;
     try
     {
@@ -705,6 +711,7 @@ int GetFunctionDeclareArguments()
         }
 
         times_in_loop++;
+        n_arguments++;
 
     }while(arguments_left);
 
@@ -1027,7 +1034,7 @@ Tree<Token>* GetFunction()
 
     // Get arguments list
 
-    GetFunctionDeclareArguments();
+    int n_arguments = GetFunctionDeclareArguments();
 
     // Get body
 
@@ -1036,7 +1043,7 @@ Tree<Token>* GetFunction()
 
     // Join them
 
-    tokens[cur_tok] = { function_name, FUNCTION_TO_CREATE, 0 };
+    tokens[cur_tok] = { function_name, FUNCTION_TO_CREATE, n_arguments };
     Tree<Token>* function = nullptr;
     try
     {
