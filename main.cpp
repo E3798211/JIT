@@ -7,14 +7,14 @@
 
 int main()
 {
-/*
+
     Compile         ("test");
     Assembler       (COMPILED_CODE_FILENAME);
     VirtualProc a   ("AsmOut");
     a.Run();
-*/
 
-    asm volatile("nop\nnop\nnop\n");
+
+    asm volatile("nop\nnop\nnop\nnop\nnop\nnop\nnop\nnop\nnop\nnop\nnop\nnop\nnop\nnop\nnop\nnop\nnop\nnop\n");
 
     JitCompile("AsmOut");
 

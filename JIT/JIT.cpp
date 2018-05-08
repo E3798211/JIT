@@ -6,9 +6,6 @@ int current_raw_command  = 0;
 /// Global varaible to contain current position in prepared buffer
 int current_prep_command = 0;
 
-/// Global varaible to contain address of the buffer to be executed
-uintptr_t code_begin = 0;
-
 // Both of them are changed in functions that produce transforming
 
 
@@ -17,21 +14,20 @@ uintptr_t code_begin = 0;
 int JitCompile(const std::string byte_code_filename)
 {
     int raw_executable_bytes[MAX_PROGRAM_SIZE] = {};
-/*
+
     FILE* input = fopen(byte_code_filename.c_str(), "r");
     if(!input)
     {
         std::cout << "Failed to open '" << byte_code_filename << "'\n";
         return ERROR::FILE_NOT_OPENED;
     }
-*/
 
     // Reading file, filling raw_exec_bytes with ints
-//    int n_raw_bytes = ReadRawBytes(raw_executable_bytes, input);
-/*
+    int n_raw_bytes = ReadRawBytes(raw_executable_bytes, input);
+
     fclose(input);
     input = nullptr;
-*/
+
     // Allocating memory with mmap
 
     char* programm = (char*)mmap(   NULL, MAX_PROGRAM_SIZE, PROT_WRITE | PROT_EXEC,
@@ -42,10 +38,8 @@ int JitCompile(const std::string byte_code_filename)
         return -ERROR::UNKNOWN;
     }
 
-    code_begin = (uintptr_t)programm;
-
     // Preparing program in x86 opcodes
-
+/*
     raw_executable_bytes[current_raw_command++] = JMP;
     raw_executable_bytes[current_raw_command++] = 14;
     raw_executable_bytes[current_raw_command++] = NOP;
@@ -310,6 +304,12 @@ int JitCompile(const std::string byte_code_filename)
     BinTox86(raw_executable_bytes, MAX_PROGRAM_SIZE, programm);
     BinTox86(raw_executable_bytes, MAX_PROGRAM_SIZE, programm);
     BinTox86(raw_executable_bytes, MAX_PROGRAM_SIZE, programm);
+*/
+
+    while(current_raw_command < n_raw_bytes)
+    {
+        BinTox86(raw_executable_bytes, programm);
+    }
 
     programm[current_prep_command++] = '\xc3';
     // Calling this function
@@ -331,7 +331,7 @@ int ReadRawBytes(int buffer[], FILE* input)
     return i;
 }
 
-int BinTox86(int buffer[], int n_raw_bytes, char programm[])
+int BinTox86(int buffer[], char programm[])
 {
     // Giant switch
 
@@ -339,45 +339,31 @@ int BinTox86(int buffer[], int n_raw_bytes, char programm[])
     /* */if(buffer[current_raw_command] >= MOV_REG_NUM &&
             buffer[current_raw_command] <= MOV_RAM_REG_REG)
     {
-        std::cout << "Mov\n";
-        TransformMov(buffer, programm);
+        TransformMov        (buffer, programm);
     }
     else if(buffer[current_raw_command] >= PUSH &&
             buffer[current_raw_command] <= POP)
     {
-        std::cout << "Push|Pop\n";
-        TransformPushPop(buffer, programm);
+        TransformPushPop    (buffer, programm);
     }
     else if(buffer[current_raw_command] >= ADD  &&
             buffer[current_raw_command] <= MUL)
     {
-        std::cout << "Arithmetics\n";
         TransformArithmetics(buffer, programm);
     }
     else if(buffer[current_raw_command] >= JMP  &&
             buffer[current_raw_command] <= JBE)
     {
-        std::cout << "Jump\n";
-        TransformJmp(buffer, programm);
+        TransformJmp        (buffer, programm);
     }
     else if(buffer[current_raw_command] == CMP)
     {
-        std::cout << "Cmp\n";
-
-        // Only 'cmp ax, bx' supported
-
-        programm[current_prep_command++] = '\x48';
-        programm[current_prep_command++] = '\x39';
-        programm[current_prep_command++] = '\xd8';
-
-        // Skipping
-        current_raw_command += 3;
+        TransformCmp        (buffer, programm);
     }
     else if(buffer[current_raw_command] >= CALL &&
             buffer[current_raw_command] <= RET)
     {
-        std::cout << "Call/Ret\n";
-        TransformCallRet(buffer, programm);
+        TransformCallRet    (buffer, programm);
     }
     else if(buffer[current_raw_command] >= IN   &&
             buffer[current_raw_command] <= OUT)
@@ -386,16 +372,11 @@ int BinTox86(int buffer[], int n_raw_bytes, char programm[])
     }
     else if(buffer[current_raw_command] == NOP)
     {
-        // Nothing :)
-        std::cout << "Nop\n";
-        programm[current_prep_command++] = '\x90';
-        current_raw_command++;
+        TransformNop        (buffer, programm);
     }
     else if(buffer[current_raw_command] == END)
     {
-        // Placing 'ret'
-        programm[current_prep_command++] = '\xc3';
-        current_raw_command++;
+        TransformEnd        (buffer, programm);
     }
     else
     {
@@ -787,7 +768,39 @@ int TransformCallRet(int buffer[], char programm[])
     return ERROR::OK;
 }
 
+int TransformEnd(int buffer[], char programm[])
+{
+    // Placing 'ret'
+    programm[current_prep_command++] = '\xc3';
 
+    current_raw_command++;
+
+    return ERROR::OK;
+}
+
+int TransformCmp(int buffer[], char programm[])
+{
+    // Only 'cmp ax, bx' supported
+
+    programm[current_prep_command++] = '\x48';
+    programm[current_prep_command++] = '\x39';
+    programm[current_prep_command++] = '\xd8';
+
+    // Skipping
+    current_raw_command += 3;
+
+    return ERROR::OK;
+}
+
+int TransformNop(int buffer[], char programm[])
+{
+    // nop
+    programm[current_prep_command++] = '\x90';
+
+    current_raw_command++;
+
+    return ERROR::OK;
+}
 
 inline int PlaceNumToProgramm(char programm[], int num)
 {

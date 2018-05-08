@@ -29,16 +29,16 @@ int JitCompile(const std::string byte_code_filename);
 /**
     \return Amount of opcodes read
 */
-int ReadRawBytes(int buffer[], FILE* input);
+int ReadRawBytes        (int buffer[], FILE* input);
 
 /// Transforms bytes for out machine to x86 opcodes
-int BinTox86(int buffer[], int n_raw_bytes, char programm[]);
+int BinTox86            (int buffer[], char programm[]);
 
 /// Transform mov
-int TransformMov(int buffer[], char programm[]);
+int TransformMov        (int buffer[], char programm[]);
 
 /// Transform Stack operations
-int TransformPushPop(int buffer[], char programm[]);
+int TransformPushPop    (int buffer[], char programm[]);
 
 /// Transform Arithmetics
 int TransformArithmetics(int buffer[], char programm[]);
@@ -47,13 +47,22 @@ int TransformArithmetics(int buffer[], char programm[]);
 /**
     Relative position is oriented on the end of a command (beginning of the next one actually)
 */
-int TransformJmp(int buffer[], char programm[]);
+int TransformJmp        (int buffer[], char programm[]);
 
 /// Transforms 'call' and 'ret' commands
-int TransformCallRet(int buffer[], char programm[]);
+int TransformCallRet    (int buffer[], char programm[]);
+
+/// Transforms 'end' command
+int TransformEnd        (int buffer[], char programm[]);
+
+/// Transforms 'cmp' command
+int TransformCmp        (int buffer[], char programm[]);
+
+/// Transforms 'nop' command
+int TransformNop        (int buffer[], char programm[]);
 
 /// Places num in a correct way to programm
-inline int PlaceNumToProgramm(char programm[], int num);
+inline int PlaceNumToProgramm   (char programm[], int num);
 
 
 #endif // JIT_H_INCLUDED
