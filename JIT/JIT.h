@@ -49,6 +49,9 @@ int TransformArithmetics(int buffer[], char programm[]);
 */
 int TransformJmp(int buffer[], char programm[]);
 
+/// Transforms 'call' and 'ret' commands
+int TransformCallRet(int buffer[], char programm[]);
+
 /// Places num in a correct way to programm
 inline int PlaceNumToProgramm(char programm[], int num);
 
