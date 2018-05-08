@@ -250,6 +250,10 @@ int AssembleLine(   int*& cmds, size_t& cur_cmd, char* beg, char* end,
 
         cmds[cur_cmd++] = DIV;
         cmds[cur_cmd++] = src_reg_num;
+
+        // ALIGNMENT
+        cmds[cur_cmd++] = NOP;
+
     }
     else if(cmd == MUL_CMD)
     {
@@ -263,6 +267,9 @@ int AssembleLine(   int*& cmds, size_t& cur_cmd, char* beg, char* end,
 
         cmds[cur_cmd++] = MUL;
         cmds[cur_cmd++] = src_reg_num;
+
+        // ALIGNMENT
+        cmds[cur_cmd++] = NOP;
     }
     // =================================
     else if(cmd == JMP_CMD)
@@ -531,6 +538,12 @@ int Mov(int*& cmds, size_t& cur_cmd, char*& beg, char*& end)
         cmds[cur_cmd++] = MOV_REG_NUM;
         cmds[cur_cmd++] = dst_reg_num;
         cmds[cur_cmd++] = stoi(cmd);
+
+        // ALIGNMENT
+        cmds[cur_cmd++] = NOP;
+        cmds[cur_cmd++] = NOP;
+        cmds[cur_cmd++] = NOP;
+        cmds[cur_cmd++] = NOP;
 
         return ERROR::OK;
     }

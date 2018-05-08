@@ -307,6 +307,9 @@ int TransformPushPop(int buffer[], char programm[])
         }
     }
 
+    // ALIGNMENT
+    programm[current_prep_command++] = '\x90';
+
     // Skipping arguments
     current_raw_command += 2;
 

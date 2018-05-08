@@ -41,6 +41,10 @@ int VirtualProc::Exec()
             registers_[dst_reg_num] = num;
 
             registers_[IP] += 2;
+
+            // ALIGNMENT
+            registers_[IP] += 4;
+
             break;
         }
         case MOV_REG_RAM_REG:
@@ -122,6 +126,10 @@ int VirtualProc::Exec()
             registers_[AX] = registers_[AX]/registers_[src_reg_num];
 
             registers_[IP] += 1;
+
+            // ALIGNMENT
+            registers_[IP] += 1;
+
             break;
         }
         case MUL:
@@ -130,6 +138,10 @@ int VirtualProc::Exec()
             registers_[AX] = registers_[AX]*registers_[src_reg_num];
 
             registers_[IP] += 1;
+
+            // ALIGNMENT
+            registers_[IP] += 1;
+
             break;
         }
         // =================================
