@@ -45,14 +45,21 @@ const int BYTE_SIZE = 8;
 
 // =================================================
 
-// cmp  rax, rbx    ->  48 39 d8
-// jmp  rcx         ->  ff e1
-// jmp  lbl         ->  eb offs
-// ja   lbl         ->  77 offs
-// jb   lbl         ->  72 offs
-// je   lbl         ->  74 offs
+// cmp  rax, rbx    ->  48 39 d8                    // Aligned to 6 bytes
 
-// call lbl         ->  e8 offs
+// jmp  rcx         ->  ff e1                       //  ?
+
+// jmp  lbl         ->  eb 01
+// ja   lbl         ->  77 01
+// jb   lbl         ->  72 01
+// je   lbl         ->  74 01
+
+// jmp  lbl         ->  e9 00 ff ff ff
+// ja   lbl         ->  0f 87 00 ff ff ff
+// jb   lbl         ->  0f 82 00 ff ff ff
+// je   lbl         ->  0f 84 00 ff ff ff
+
+// call lbl         ->  e8 00 00 00 00
 
 // =================================================
 

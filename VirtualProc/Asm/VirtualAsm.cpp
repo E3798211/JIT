@@ -591,6 +591,13 @@ int Jump(   int*& cmds, size_t& cur_cmd, char*& beg, char*& end,
     cmds[cur_cmd++] = jmp;
     cmds[cur_cmd++] = (label_num >= 0) ? labels[label_num].address_ : -1;
 
+    // ALIGN
+    cmds[cur_cmd++] = NOP;
+    cmds[cur_cmd++] = NOP;
+    cmds[cur_cmd++] = NOP;
+    cmds[cur_cmd++] = NOP;
+
+
     return ERROR::OK;
 }
 

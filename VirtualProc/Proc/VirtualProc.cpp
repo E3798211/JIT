@@ -289,6 +289,8 @@ int VirtualProc::JumpCode(bool (*check)(int flag_value))
         registers_[IP] += 1;    // Skipping landing label
     }
 
+
+
     return ERROR::OK;
 }
 

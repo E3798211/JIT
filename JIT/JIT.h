@@ -14,6 +14,11 @@
 #include "../VirtualProc/CommonFiles/Commands.h"
 #include "x86opcodes.h"
 
+
+const int MAX_SHORT_JUMP_FORWARD  =  127;
+const int MAX_SHORT_JUMP_BACKWARD = -127;
+
+
 /// Transforms bin file to x86 opcodes and executes it
 /**
     \param [in] byte_code_filename Name of the file with byte commands for virtual machine
@@ -39,6 +44,9 @@ int TransformPushPop(int buffer[], char programm[]);
 int TransformArithmetics(int buffer[], char programm[]);
 
 /// Transform Jumps
+/**
+    Relative position is oriented on the end of a command (beginning of the next one actually)
+*/
 int TransformJmp(int buffer[], char programm[]);
 
 /// Places num in a correct way to programm
