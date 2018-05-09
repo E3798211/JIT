@@ -53,11 +53,13 @@ const int BYTE_SIZE = 8;
 // ja   lbl         ->  77 01
 // jb   lbl         ->  72 01
 // je   lbl         ->  74 01
+// jne  lbl         ->  75 01
 
 // jmp  lbl         ->  e9 00 ff ff ff
 // ja   lbl         ->  0f 87 00 ff ff ff
 // jb   lbl         ->  0f 82 00 ff ff ff
 // je   lbl         ->  0f 84 00 ff ff ff
+// jne  lbl         ->  0f 85 00 ff ff ff
 
 // call lbl         ->  e8 00 00 00 00
 
@@ -67,7 +69,7 @@ const int BYTE_SIZE = 8;
 
 // =================================================
 
-// out              ->  call ***                    // Aligned to 5 bytes
+// out              ->  call ***                    // Aligned to 6 bytes
 
 
 #endif // X86OPCODES_H_INCLUDED

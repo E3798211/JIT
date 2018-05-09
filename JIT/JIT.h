@@ -15,7 +15,7 @@
 #include "x86opcodes.h"
 
 
-const int MAX_SHORT_JUMP_FORWARD  =  127;
+const int MAX_SHORT_JUMP_FORWARD  =  128;
 const int MAX_SHORT_JUMP_BACKWARD = -127;
 
 const char OUT_REPLACEMENT[]    =

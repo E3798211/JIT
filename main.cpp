@@ -8,7 +8,7 @@
 int main()
 {
 
-    Compile         ("test");
+    Compile         ("StressTest");
     Assembler       (COMPILED_CODE_FILENAME);
     VirtualProc a   ("AsmOut");
     a.Run();

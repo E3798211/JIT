@@ -185,6 +185,8 @@ int TransformMov(int buffer[], char programm[])
                 case SP:
                     programm[current_prep_command++] = '\xc4';
                     break;
+                default:
+                    assert(0);
             }
 
             // Correct num?
@@ -239,6 +241,8 @@ int TransformMov(int buffer[], char programm[])
                     }
                     break;
                 }
+                default:
+                    assert(0);
             }
 
             break;
@@ -253,6 +257,8 @@ int TransformMov(int buffer[], char programm[])
 
             break;
         }
+        default:
+            assert(0);
     }
 
     // Skipping arguments
@@ -277,6 +283,8 @@ int TransformPushPop(int buffer[], char programm[])
                 case BP:
                     programm[current_prep_command++] = '\x55';
                     break;
+                default:
+                    assert(0);
             }
             break;
         }
@@ -296,9 +304,13 @@ int TransformPushPop(int buffer[], char programm[])
                 case BP:
                     programm[current_prep_command++] = '\x5d';
                     break;
+                default:
+                    assert(0);
             }
             break;
         }
+        default:
+            assert(0);
     }
 
     // ALIGNMENT
@@ -335,6 +347,8 @@ int TransformArithmetics(int buffer[], char programm[])
                 case CX:
                     programm[current_prep_command++] = '\xcb';
                     break;
+                default:
+                    assert(0);
             }
 
             break;
@@ -369,6 +383,8 @@ int TransformArithmetics(int buffer[], char programm[])
                 case SP:
                     programm[current_prep_command++] =      '\xcc';
                     break;
+                default:
+                    assert(0);
             }
 
             break;
@@ -397,6 +413,8 @@ int TransformArithmetics(int buffer[], char programm[])
 
             break;
         }
+        default:
+            assert(0);
     }
 
     // Skipping arguments
@@ -436,6 +454,11 @@ int TransformJmp(int buffer[], char programm[])
             case JE:
                 programm[current_prep_command++] =  '\x74';
                 break;
+            case JNE:
+                programm[current_prep_command++] =  '\x75';
+                break;
+            default:
+                assert(0);
         }
 
         // Placing jump
@@ -456,7 +479,7 @@ int TransformJmp(int buffer[], char programm[])
             // Correcting jump address
             relative_address -= 5;
 
-            // short jmp opcode
+            // long jmp opcode
             programm[current_prep_command++] =      '\xe9';
 
             // Placing landing place
@@ -483,6 +506,12 @@ int TransformJmp(int buffer[], char programm[])
                 case JE:
                     programm[current_prep_command++] = '\x84';
                     break;
+                case JNE:
+                    programm[current_prep_command++] = '\x85';
+                    break;
+                default:
+                    assert(0);
+
             }
 
             // Placing address
@@ -531,6 +560,8 @@ int TransformCallRet(int buffer[], char programm[])
 
             break;
         }
+        default:
+            assert(0);
     }
 
     return ERROR::OK;
@@ -593,11 +624,15 @@ int TransformInOut        (int buffer[], char programm[])
             // Function address
             PlaceNumToProgramm(programm, call_address);
 
+            programm[current_prep_command++] = '\x90';
+
             //Skipping argument
-            current_raw_command += 5;
+            current_raw_command += 6;
 
             break;
         }
+        default:
+            assert(0);
     }
 
     return ERROR::OK;
@@ -643,6 +678,66 @@ inline int CorrectNum(int buffer[], int num)
             buffer[current_raw_command + 13] == MOV_REG_RAM_REG &&  // mov ax, [bx]
             buffer[current_raw_command + 14] == AX              &&
             buffer[current_raw_command + 15] == BX
+            )
+    {
+        // As we're addressing to the stack in 64-bit
+        return num * 8;
+    }
+
+    else if(buffer[current_raw_command    ]  == MOV_REG_NUM     &&  // mov cx, NUM
+            buffer[current_raw_command + 1]  == AX              &&
+
+            buffer[current_raw_command + 7]  == MOV_REG_REG     &&  // mov bx, bp
+            buffer[current_raw_command + 8]  == BX              &&
+            buffer[current_raw_command + 9]  == BP              &&
+
+            buffer[current_raw_command + 10] == SUB             &&  // add bx, ax
+            buffer[current_raw_command + 11] == BX              &&
+            buffer[current_raw_command + 12] == AX              &&
+
+            buffer[current_raw_command + 13] == MOV_REG_RAM_REG &&  // mov [bx], ax
+            buffer[current_raw_command + 14] == AX              &&
+            buffer[current_raw_command + 15] == BX
+            )
+    {
+        // As we're addressing to the stack in 64-bit
+        return num * 8;
+    }
+
+    else if(buffer[current_raw_command    ]  == MOV_REG_NUM     &&  // mov cx, NUM
+            buffer[current_raw_command + 1]  == CX              &&
+
+            buffer[current_raw_command + 7]  == MOV_REG_REG     &&  // mov bx, bp
+            buffer[current_raw_command + 8]  == BX              &&
+            buffer[current_raw_command + 9]  == BP              &&
+
+            buffer[current_raw_command + 10] == SUB             &&  // add bx, ax
+            buffer[current_raw_command + 11] == BX              &&
+            buffer[current_raw_command + 12] == CX              &&
+
+            buffer[current_raw_command + 13] == MOV_RAM_REG_REG &&  // mov [bx], ax
+            buffer[current_raw_command + 14] == BX              &&
+            buffer[current_raw_command + 15] == AX
+            )
+    {
+        // As we're addressing to the stack in 64-bit
+        return num * 8;
+    }
+
+    else if(buffer[current_raw_command    ]  == MOV_REG_NUM     &&  // mov cx, NUM
+            buffer[current_raw_command + 1]  == CX              &&
+
+            buffer[current_raw_command + 7]  == MOV_REG_REG     &&  // mov bx, bp
+            buffer[current_raw_command + 8]  == BX              &&
+            buffer[current_raw_command + 9]  == BP              &&
+
+            buffer[current_raw_command + 10] == ADD             &&  // add bx, ax
+            buffer[current_raw_command + 11] == BX              &&
+            buffer[current_raw_command + 12] == CX              &&
+
+            buffer[current_raw_command + 13] == MOV_RAM_REG_REG &&  // mov [bx], ax
+            buffer[current_raw_command + 14] == BX              &&
+            buffer[current_raw_command + 15] == AX
             )
     {
         // As we're addressing to the stack in 64-bit
