@@ -65,5 +65,9 @@ const int BYTE_SIZE = 8;
 
 // ret              ->  c3
 
+// =================================================
+
+// out              ->  call ***                    // Aligned to 5 bytes
+
 
 #endif // X86OPCODES_H_INCLUDED

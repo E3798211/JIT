@@ -30,7 +30,7 @@ int JitCompile(const std::string byte_code_filename)
 
     // Allocating memory with mmap
 
-    char* programm = (char*)mmap(   NULL, MAX_PROGRAM_SIZE, PROT_WRITE | PROT_EXEC,
+    char* programm = (char*)mmap(   NULL, MAX_PROGRAM_SIZE + sizeof(OUT_REPLACEMENT) + 10, PROT_WRITE | PROT_EXEC,
                              MAP_ANON | MAP_PRIVATE, -1, 0);
     if(!programm)
     {
@@ -39,284 +39,31 @@ int JitCompile(const std::string byte_code_filename)
     }
 
     // Preparing program in x86 opcodes
-/*
-    raw_executable_bytes[current_raw_command++] = JMP;
-    raw_executable_bytes[current_raw_command++] = 14;
-    raw_executable_bytes[current_raw_command++] = NOP;
-    raw_executable_bytes[current_raw_command++] = NOP;
-    raw_executable_bytes[current_raw_command++] = NOP;
-    raw_executable_bytes[current_raw_command++] = NOP;
-
-    raw_executable_bytes[current_raw_command++] = 0;
-    raw_executable_bytes[current_raw_command++] = 0;
-    raw_executable_bytes[current_raw_command++] = 0x1234;
-    raw_executable_bytes[current_raw_command++] = NOP;
-    raw_executable_bytes[current_raw_command++] = NOP;
-    raw_executable_bytes[current_raw_command++] = NOP;
-    raw_executable_bytes[current_raw_command++] = NOP;
-
-    raw_executable_bytes[current_raw_command++] = RET;
-
-    raw_executable_bytes[current_raw_command++] = 0;
-    raw_executable_bytes[current_raw_command++] = 0;
-    raw_executable_bytes[current_raw_command++] = 0x1234;
-    raw_executable_bytes[current_raw_command++] = NOP;
-    raw_executable_bytes[current_raw_command++] = NOP;
-    raw_executable_bytes[current_raw_command++] = NOP;
-    raw_executable_bytes[current_raw_command++] = NOP;
-
-    raw_executable_bytes[current_raw_command++] = 0;
-    raw_executable_bytes[current_raw_command++] = 0;
-    raw_executable_bytes[current_raw_command++] = 0x1234;
-    raw_executable_bytes[current_raw_command++] = NOP;
-    raw_executable_bytes[current_raw_command++] = NOP;
-    raw_executable_bytes[current_raw_command++] = NOP;
-    raw_executable_bytes[current_raw_command++] = NOP;
-
-    raw_executable_bytes[current_raw_command++] = 0;
-    raw_executable_bytes[current_raw_command++] = 0;
-    raw_executable_bytes[current_raw_command++] = 0x1234;
-    raw_executable_bytes[current_raw_command++] = NOP;
-    raw_executable_bytes[current_raw_command++] = NOP;
-    raw_executable_bytes[current_raw_command++] = NOP;
-    raw_executable_bytes[current_raw_command++] = NOP;
-
-    raw_executable_bytes[current_raw_command++] = 0;
-    raw_executable_bytes[current_raw_command++] = 0;
-    raw_executable_bytes[current_raw_command++] = 0x1234;
-    raw_executable_bytes[current_raw_command++] = NOP;
-    raw_executable_bytes[current_raw_command++] = NOP;
-    raw_executable_bytes[current_raw_command++] = NOP;
-    raw_executable_bytes[current_raw_command++] = NOP;
-
-    raw_executable_bytes[current_raw_command++] = 0;
-    raw_executable_bytes[current_raw_command++] = 0;
-    raw_executable_bytes[current_raw_command++] = 0x1234;
-    raw_executable_bytes[current_raw_command++] = NOP;
-    raw_executable_bytes[current_raw_command++] = NOP;
-    raw_executable_bytes[current_raw_command++] = NOP;
-    raw_executable_bytes[current_raw_command++] = NOP;
-
-    raw_executable_bytes[current_raw_command++] = 0;
-    raw_executable_bytes[current_raw_command++] = 0;
-    raw_executable_bytes[current_raw_command++] = 0x1234;
-    raw_executable_bytes[current_raw_command++] = NOP;
-    raw_executable_bytes[current_raw_command++] = NOP;
-    raw_executable_bytes[current_raw_command++] = NOP;
-    raw_executable_bytes[current_raw_command++] = NOP;
-
-    raw_executable_bytes[current_raw_command++] = 0;
-    raw_executable_bytes[current_raw_command++] = 0;
-    raw_executable_bytes[current_raw_command++] = 0x1234;
-    raw_executable_bytes[current_raw_command++] = NOP;
-    raw_executable_bytes[current_raw_command++] = NOP;
-    raw_executable_bytes[current_raw_command++] = NOP;
-    raw_executable_bytes[current_raw_command++] = NOP;
-
-    raw_executable_bytes[current_raw_command++] = 0;
-    raw_executable_bytes[current_raw_command++] = 0;
-    raw_executable_bytes[current_raw_command++] = 0x1234;
-    raw_executable_bytes[current_raw_command++] = NOP;
-    raw_executable_bytes[current_raw_command++] = NOP;
-    raw_executable_bytes[current_raw_command++] = NOP;
-    raw_executable_bytes[current_raw_command++] = NOP;
-
-    raw_executable_bytes[current_raw_command++] = 0;
-    raw_executable_bytes[current_raw_command++] = 0;
-    raw_executable_bytes[current_raw_command++] = 0x1234;
-    raw_executable_bytes[current_raw_command++] = NOP;
-    raw_executable_bytes[current_raw_command++] = NOP;
-    raw_executable_bytes[current_raw_command++] = NOP;
-    raw_executable_bytes[current_raw_command++] = NOP;
-
-    raw_executable_bytes[current_raw_command++] = 0;
-    raw_executable_bytes[current_raw_command++] = 0;
-    raw_executable_bytes[current_raw_command++] = 0x1234;
-    raw_executable_bytes[current_raw_command++] = NOP;
-    raw_executable_bytes[current_raw_command++] = NOP;
-    raw_executable_bytes[current_raw_command++] = NOP;
-    raw_executable_bytes[current_raw_command++] = NOP;
-
-    raw_executable_bytes[current_raw_command++] = 0;
-    raw_executable_bytes[current_raw_command++] = 0;
-    raw_executable_bytes[current_raw_command++] = 0x1234;
-    raw_executable_bytes[current_raw_command++] = NOP;
-    raw_executable_bytes[current_raw_command++] = NOP;
-    raw_executable_bytes[current_raw_command++] = NOP;
-    raw_executable_bytes[current_raw_command++] = NOP;
-
-    raw_executable_bytes[current_raw_command++] = 0;
-    raw_executable_bytes[current_raw_command++] = 0;
-    raw_executable_bytes[current_raw_command++] = 0x1234;
-    raw_executable_bytes[current_raw_command++] = NOP;
-    raw_executable_bytes[current_raw_command++] = NOP;
-    raw_executable_bytes[current_raw_command++] = NOP;
-    raw_executable_bytes[current_raw_command++] = NOP;
-
-    raw_executable_bytes[current_raw_command++] = 0;
-    raw_executable_bytes[current_raw_command++] = 0;
-    raw_executable_bytes[current_raw_command++] = 0x1234;
-    raw_executable_bytes[current_raw_command++] = NOP;
-    raw_executable_bytes[current_raw_command++] = NOP;
-    raw_executable_bytes[current_raw_command++] = NOP;
-    raw_executable_bytes[current_raw_command++] = NOP;
-
-    raw_executable_bytes[current_raw_command++] = 0;
-    raw_executable_bytes[current_raw_command++] = 0;
-    raw_executable_bytes[current_raw_command++] = 0x1234;
-    raw_executable_bytes[current_raw_command++] = NOP;
-    raw_executable_bytes[current_raw_command++] = NOP;
-    raw_executable_bytes[current_raw_command++] = NOP;
-    raw_executable_bytes[current_raw_command++] = NOP;
-
-    raw_executable_bytes[current_raw_command++] = 0;
-    raw_executable_bytes[current_raw_command++] = 0;
-    raw_executable_bytes[current_raw_command++] = 0x1234;
-    raw_executable_bytes[current_raw_command++] = NOP;
-    raw_executable_bytes[current_raw_command++] = NOP;
-    raw_executable_bytes[current_raw_command++] = NOP;
-    raw_executable_bytes[current_raw_command++] = NOP;
-
-    raw_executable_bytes[current_raw_command++] = 0;
-    raw_executable_bytes[current_raw_command++] = 0;
-    raw_executable_bytes[current_raw_command++] = 0x1234;
-    raw_executable_bytes[current_raw_command++] = NOP;
-    raw_executable_bytes[current_raw_command++] = NOP;
-    raw_executable_bytes[current_raw_command++] = NOP;
-    raw_executable_bytes[current_raw_command++] = NOP;
-
-    raw_executable_bytes[current_raw_command++] = 0;
-    raw_executable_bytes[current_raw_command++] = 0;
-    raw_executable_bytes[current_raw_command++] = 0x1234;
-    raw_executable_bytes[current_raw_command++] = NOP;
-    raw_executable_bytes[current_raw_command++] = NOP;
-    raw_executable_bytes[current_raw_command++] = NOP;
-    raw_executable_bytes[current_raw_command++] = NOP;
-
-    raw_executable_bytes[current_raw_command++] = 0;
-    raw_executable_bytes[current_raw_command++] = 0;
-    raw_executable_bytes[current_raw_command++] = 0x1234;
-    raw_executable_bytes[current_raw_command++] = NOP;
-    raw_executable_bytes[current_raw_command++] = NOP;
-    raw_executable_bytes[current_raw_command++] = NOP;
-    raw_executable_bytes[current_raw_command++] = NOP;
-
-    raw_executable_bytes[current_raw_command++] = 0;
-    raw_executable_bytes[current_raw_command++] = 0;
-    raw_executable_bytes[current_raw_command++] = 0x1234;
-    raw_executable_bytes[current_raw_command++] = NOP;
-    raw_executable_bytes[current_raw_command++] = NOP;
-    raw_executable_bytes[current_raw_command++] = NOP;
-    raw_executable_bytes[current_raw_command++] = NOP;
-
-
-
-    raw_executable_bytes[current_raw_command++] = 0;
-    raw_executable_bytes[current_raw_command++] = 0;
-    raw_executable_bytes[current_raw_command++] = 0x1234;
-    raw_executable_bytes[current_raw_command++] = NOP;
-    raw_executable_bytes[current_raw_command++] = NOP;
-    raw_executable_bytes[current_raw_command++] = NOP;
-    raw_executable_bytes[current_raw_command++] = NOP;
-
-    raw_executable_bytes[current_raw_command++] = 0;
-    raw_executable_bytes[current_raw_command++] = 0;
-    raw_executable_bytes[current_raw_command++] = 0x1234;
-    raw_executable_bytes[current_raw_command++] = NOP;
-    raw_executable_bytes[current_raw_command++] = NOP;
-    raw_executable_bytes[current_raw_command++] = NOP;
-    raw_executable_bytes[current_raw_command++] = NOP;
-
-    raw_executable_bytes[current_raw_command++] = 0;
-    raw_executable_bytes[current_raw_command++] = 0;
-    raw_executable_bytes[current_raw_command++] = 0x1234;
-    raw_executable_bytes[current_raw_command++] = NOP;
-    raw_executable_bytes[current_raw_command++] = NOP;
-    raw_executable_bytes[current_raw_command++] = NOP;
-    raw_executable_bytes[current_raw_command++] = NOP;
-
-    raw_executable_bytes[current_raw_command++] = 0;
-    raw_executable_bytes[current_raw_command++] = 0;
-    raw_executable_bytes[current_raw_command++] = 0x1234;
-    raw_executable_bytes[current_raw_command++] = NOP;
-    raw_executable_bytes[current_raw_command++] = NOP;
-    raw_executable_bytes[current_raw_command++] = NOP;
-    raw_executable_bytes[current_raw_command++] = NOP;
-
-    raw_executable_bytes[current_raw_command++] = CALL;
-    raw_executable_bytes[current_raw_command++] = 6;
-    raw_executable_bytes[current_raw_command++] = NOP;
-    raw_executable_bytes[current_raw_command++] = NOP;
-    raw_executable_bytes[current_raw_command++] = NOP;
-    raw_executable_bytes[current_raw_command++] = NOP;
-
-    raw_executable_bytes[current_raw_command++] = JA;
-    raw_executable_bytes[current_raw_command++] = 0;
-    raw_executable_bytes[current_raw_command++] = NOP;
-    raw_executable_bytes[current_raw_command++] = NOP;
-    raw_executable_bytes[current_raw_command++] = NOP;
-    raw_executable_bytes[current_raw_command++] = NOP;
-
-    raw_executable_bytes[current_raw_command++] = JB;
-    raw_executable_bytes[current_raw_command++] = 0;
-    raw_executable_bytes[current_raw_command++] = NOP;
-    raw_executable_bytes[current_raw_command++] = NOP;
-    raw_executable_bytes[current_raw_command++] = NOP;
-    raw_executable_bytes[current_raw_command++] = NOP;
-
-    raw_executable_bytes[current_raw_command++] = JE;
-    raw_executable_bytes[current_raw_command++] = 0;
-    raw_executable_bytes[current_raw_command++] = NOP;
-    raw_executable_bytes[current_raw_command++] = NOP;
-    raw_executable_bytes[current_raw_command++] = NOP;
-    raw_executable_bytes[current_raw_command++] = NOP;
-
-    raw_executable_bytes[current_raw_command++] = NOP;
-
-    current_raw_command = 0;
-
-    BinTox86(raw_executable_bytes, MAX_PROGRAM_SIZE, programm);
-    BinTox86(raw_executable_bytes, MAX_PROGRAM_SIZE, programm);
-    BinTox86(raw_executable_bytes, MAX_PROGRAM_SIZE, programm);
-    BinTox86(raw_executable_bytes, MAX_PROGRAM_SIZE, programm);
-    BinTox86(raw_executable_bytes, MAX_PROGRAM_SIZE, programm);
-    BinTox86(raw_executable_bytes, MAX_PROGRAM_SIZE, programm);
-    BinTox86(raw_executable_bytes, MAX_PROGRAM_SIZE, programm);
-    BinTox86(raw_executable_bytes, MAX_PROGRAM_SIZE, programm);
-    BinTox86(raw_executable_bytes, MAX_PROGRAM_SIZE, programm);
-    BinTox86(raw_executable_bytes, MAX_PROGRAM_SIZE, programm);
-    BinTox86(raw_executable_bytes, MAX_PROGRAM_SIZE, programm);
-    BinTox86(raw_executable_bytes, MAX_PROGRAM_SIZE, programm);
-    BinTox86(raw_executable_bytes, MAX_PROGRAM_SIZE, programm);
-    BinTox86(raw_executable_bytes, MAX_PROGRAM_SIZE, programm);
-    BinTox86(raw_executable_bytes, MAX_PROGRAM_SIZE, programm);
-    BinTox86(raw_executable_bytes, MAX_PROGRAM_SIZE, programm);
-    BinTox86(raw_executable_bytes, MAX_PROGRAM_SIZE, programm);
-    BinTox86(raw_executable_bytes, MAX_PROGRAM_SIZE, programm);
-    BinTox86(raw_executable_bytes, MAX_PROGRAM_SIZE, programm);
-    BinTox86(raw_executable_bytes, MAX_PROGRAM_SIZE, programm);
-    BinTox86(raw_executable_bytes, MAX_PROGRAM_SIZE, programm);
-    BinTox86(raw_executable_bytes, MAX_PROGRAM_SIZE, programm);
-    BinTox86(raw_executable_bytes, MAX_PROGRAM_SIZE, programm);
-    BinTox86(raw_executable_bytes, MAX_PROGRAM_SIZE, programm);
-    BinTox86(raw_executable_bytes, MAX_PROGRAM_SIZE, programm);
-    BinTox86(raw_executable_bytes, MAX_PROGRAM_SIZE, programm);
-    BinTox86(raw_executable_bytes, MAX_PROGRAM_SIZE, programm);
-    BinTox86(raw_executable_bytes, MAX_PROGRAM_SIZE, programm);
-    BinTox86(raw_executable_bytes, MAX_PROGRAM_SIZE, programm);
-*/
 
     while(current_raw_command < n_raw_bytes)
     {
         BinTox86(raw_executable_bytes, programm);
     }
 
-    programm[current_prep_command++] = '\xc3';
+    int library_end = MAX_PROGRAM_SIZE + sizeof(OUT_REPLACEMENT) + 1;
+    for(int i = MAX_PROGRAM_SIZE; i < library_end; i++)
+        programm[i] = OUT_REPLACEMENT[i - MAX_PROGRAM_SIZE];
+
     // Calling this function
 
-    std::cout << "Calling\n";
-
+    asm volatile
+    (
+        "mov  %rbp, %r15\n"
+        "mov  %rsp, %r14\n"
+    );
     ((void (*)())programm)();
+    asm volatile
+    (
+        "mov  %r15, %rbp\n"
+        "mov  %r14, %rsp\n"
+    );
+
+    // delete [] programm;
 
     return ERROR::OK;
 }
@@ -329,6 +76,24 @@ int ReadRawBytes(int buffer[], FILE* input)
     while(fscanf(input, "%d", buffer + i) != EOF)     i++;
 
     return i;
+}
+
+int InitProgramm(int raw_commands[], char programm[], int n_commands)
+{
+    // Creating programm
+
+    while(current_raw_command < n_commands)
+    {
+        BinTox86(raw_commands, programm);
+    }
+
+    // Adding library
+
+    int library_end = LIBRARY_BEGIN + LIBRARY_LENGTH + 1;
+    for(int i = LIBRARY_BEGIN; i < library_end; i++)
+        programm[i] = OUT_REPLACEMENT[i - MAX_PROGRAM_SIZE];
+
+    return ERROR::OK;
 }
 
 int BinTox86(int buffer[], char programm[])
@@ -368,7 +133,7 @@ int BinTox86(int buffer[], char programm[])
     else if(buffer[current_raw_command] >= IN   &&
             buffer[current_raw_command] <= OUT)
     {
-        // Later...
+        TransformInOut      (buffer, programm);
     }
     else if(buffer[current_raw_command] == NOP)
     {
@@ -421,6 +186,9 @@ int TransformMov(int buffer[], char programm[])
                     programm[current_prep_command++] = '\xc4';
                     break;
             }
+
+            // Correct num?
+            num_to_be_assigned = CorrectNum(buffer, num_to_be_assigned);
 
             // Placing num
             PlaceNumToProgramm(programm, num_to_be_assigned);
@@ -613,7 +381,7 @@ int TransformArithmetics(int buffer[], char programm[])
             programm[current_prep_command++] = '\xf7';
             programm[current_prep_command++] = '\xf3';
 
-            current_raw_command--;  // As it will be incremented lately
+            // current_raw_command--;  // As it will be incremented lately
 
             break;
         }
@@ -625,7 +393,7 @@ int TransformArithmetics(int buffer[], char programm[])
             programm[current_prep_command++] = '\xf7';
             programm[current_prep_command++] = '\xe3';
 
-            current_raw_command--;  // As it will be incremented lately
+            // current_raw_command--;  // As it will be incremented lately
 
             break;
         }
@@ -802,6 +570,42 @@ int TransformNop(int buffer[], char programm[])
     return ERROR::OK;
 }
 
+int TransformInOut        (int buffer[], char programm[])
+{
+    switch(buffer[current_raw_command])
+    {
+        case IN:
+        {
+            // NOT IMPLEMENTED
+            break;
+        }
+        case OUT:
+        {
+            // Just call of OUT from our library
+            int call_address = OUT_BEGIN_ADDR - current_raw_command;
+
+            // Correcting address
+            call_address -= 5;
+
+            // Call itself
+            programm[current_prep_command++] = '\xe8';
+
+            // Function address
+            PlaceNumToProgramm(programm, call_address);
+
+            //Skipping argument
+            current_raw_command += 5;
+
+            break;
+        }
+    }
+
+    return ERROR::OK;
+}
+
+
+
+
 inline int PlaceNumToProgramm(char programm[], int num)
 {
     programm[current_prep_command++] = (char)((num >> BYTE_SIZE * (sizeof(int) - 4)) & 0xFF);
@@ -812,6 +616,57 @@ inline int PlaceNumToProgramm(char programm[], int num)
     return ERROR::OK;
 }
 
+inline int CorrectNum(int buffer[], int num)
+{
+    /*
+     *
+     *  We only need corrections when work with memory, i.e. rsp additions and memory addressing
+     *
+     *  current_raw_command is set to the beginning of the command, i.e. we can just check further instructions
+     *  and arguments
+     *
+     */
 
+    // parameter getting: mov ax, NUM; mov bx, bp; add bx, ax; mov ax, [bx]
+
+    /* */if(buffer[current_raw_command    ]  == MOV_REG_NUM     &&  // mov ax, NUM
+            buffer[current_raw_command + 1]  == AX              &&
+
+            buffer[current_raw_command + 7]  == MOV_REG_REG     &&  // mov bx, bp
+            buffer[current_raw_command + 8]  == BX              &&
+            buffer[current_raw_command + 9]  == BP              &&
+
+            buffer[current_raw_command + 10] == ADD             &&  // add bx, ax
+            buffer[current_raw_command + 11] == BX              &&
+            buffer[current_raw_command + 12] == AX              &&
+
+            buffer[current_raw_command + 13] == MOV_REG_RAM_REG &&  // mov ax, [bx]
+            buffer[current_raw_command + 14] == AX              &&
+            buffer[current_raw_command + 15] == BX
+            )
+    {
+        // As we're addressing to the stack in 64-bit
+        return num * 8;
+    }
+
+    // Creating variable
+
+    else if(buffer[current_raw_command    ]  == MOV_REG_NUM     &&  // mov cx, 1
+            buffer[current_raw_command + 1]  == CX              &&
+
+            buffer[current_raw_command + 7]  == SUB             &&
+            buffer[current_raw_command + 8]  == SP              &&
+            buffer[current_raw_command + 9]  == CX
+            )
+    {
+        // As we're addressing to the stack in 64-bit
+        return num * 8;
+    }
+    else
+    {
+        // Not a special situation
+        return num;
+    }
+}
 
 

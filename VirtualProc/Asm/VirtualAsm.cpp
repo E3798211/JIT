@@ -393,6 +393,12 @@ int AssembleLine(   int*& cmds, size_t& cur_cmd, char* beg, char* end,
     else if(cmd == OUT_CMD)
     {
         cmds[cur_cmd++] = OUT;
+
+        // ALIGNMENT
+        cmds[cur_cmd++] = NOP;
+        cmds[cur_cmd++] = NOP;
+        cmds[cur_cmd++] = NOP;
+        cmds[cur_cmd++] = NOP;
     }
     else if(cmd == END_CMD)
     {
